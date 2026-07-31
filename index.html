@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="mrbd-web-app-capable" content="yes">
@@ -133,8 +133,8 @@
     font-size: 26px;
     font-weight: 700;
     border-radius: 16px;
-    text-align: right;
-    direction: rtl;
+    text-align: left;
+    direction: ltr;
     padding: 0 24px;
     outline: none;
     transition: background 0.15s ease, border-color 0.15s ease;
@@ -383,7 +383,7 @@
   var PLANS = {
     fullbody: {
       id: "fullbody",
-      name: "גוף מלא",
+      name: "Full body",
       exercises: {
         legpress: EX.legpress,
         chestpress: EX.chestpress,
@@ -402,7 +402,7 @@
     },
     upper: {
       id: "upper",
-      name: "פלג עליון",
+      name: "Upper push",
       exercises: {
         chestpress: EX.chestpress,
         shpress: EX.shpress,
@@ -417,7 +417,7 @@
     },
     legs: {
       id: "legs",
-      name: "רגליים",
+      name: "Legs",
       exercises: {
         legpress: EX.legpress,
         legcurl: EX.legcurl,
@@ -476,9 +476,9 @@
 
   function heroForSet(set, reps, ex) {
     if (ex && ex.unit === "time") return formatClock(reps);
-    if (ex && ex.unit === "bodyweight") return reps + " חזרות";
+    if (ex && ex.unit === "bodyweight") return reps + " reps";
     var w = formatWeight(set.targetWeightKg);
-    return w ? w + " ק״ג · " + reps : reps + " חזרות";
+    return w ? w + " kg · " + reps : reps + " reps";
   }
 
   function needsTeach(state, plan, cursor) {
@@ -746,16 +746,16 @@
     if (!state || state.phase === "PlanSelect" || state.phase === "Idle") {
       return {
         eyebrow: "SetPace",
-        heading: "מה נאמן היום?",
+        heading: "What today?",
         hero: "",
-        meta: "בחר · ותתחיל",
+        meta: "Pick a workout",
         demo: null,
         progress: null,
         mood: "home",
         actions: [
-          { id: "plan_full", label: "גוף מלא", event: { t: "SELECT_PLAN", planId: "fullbody" } },
-          { id: "plan_upper", label: "פלג עליון", event: { t: "SELECT_PLAN", planId: "upper" } },
-          { id: "plan_legs", label: "רגליים", event: { t: "SELECT_PLAN", planId: "legs" } }
+          { id: "plan_full", label: "Full body", event: { t: "SELECT_PLAN", planId: "fullbody" } },
+          { id: "plan_upper", label: "Upper push", event: { t: "SELECT_PLAN", planId: "upper" } },
+          { id: "plan_legs", label: "Legs", event: { t: "SELECT_PLAN", planId: "legs" } }
         ]
       };
     }
@@ -769,16 +769,16 @@
       var idx = Math.min(state.teachStep, Math.max(0, steps.length - 1));
       var last = idx >= steps.length - 1;
       return {
-        eyebrow: "למדים · " + (idx + 1) + "/" + steps.length,
+        eyebrow: "Learn · " + (idx + 1) + "/" + steps.length,
         heading: tex.name,
         hero: steps[idx] || "",
-        meta: tex.cue || "עקוב אחרי התנועה",
+        meta: tex.cue || "Follow the motion",
         demo: tex.demo || tex.id,
         progress: pct,
         mood: "teach",
         actions: [
-          { id: "primary", label: last ? "יאללה, מוכן" : "הבא", event: { t: "TEACH_NEXT" } },
-          { id: "skip", label: "אני כבר יודע", event: { t: "TEACH_SKIP" } }
+          { id: "primary", label: last ? "Let's go" : "Next", event: { t: "TEACH_NEXT" } },
+          { id: "skip", label: "I know this", event: { t: "TEACH_SKIP" } }
         ]
       };
     }
@@ -787,17 +787,17 @@
       var aset = plan.sets[state.cursor];
       var aex = exerciseOf(plan, aset);
       return {
-        eyebrow: "כוונון",
+        eyebrow: "Adjust",
         heading: aex.name,
-        hero: String(state.adjust.reps) + (aex.unit === "time" ? " שנ׳" : " חזרות"),
-        meta: "שנה ואשר",
+        hero: String(state.adjust.reps) + (aex.unit === "time" ? " sec" : " reps"),
+        meta: "Change then confirm",
         demo: null,
         progress: pct,
         mood: "ready",
         actions: [
           { id: "minus", label: "−1", event: { t: "ADJUST_DELTA", delta: -1 } },
           { id: "plus", label: "+1", event: { t: "ADJUST_DELTA", delta: 1 } },
-          { id: "done", label: "שמור", event: { t: "CONFIRM" } }
+          { id: "done", label: "Save", event: { t: "CONFIRM" } }
         ]
       };
     }
@@ -810,16 +810,16 @@
       }
       var mins = Math.max(1, Math.round((t - state.startedAt) / 60000));
       return {
-        eyebrow: "סיימת · כל הכבוד",
-        heading: "אימון הושלם",
-        hero: state.logged.length + " סטים",
-        meta: mins + " דק׳ · " + Math.round(volume) + " ק״ג",
+        eyebrow: "Nice work",
+        heading: "Workout done",
+        hero: state.logged.length + " sets",
+        meta: mins + " min · " + Math.round(volume) + " kg",
         demo: null,
         progress: 1,
         mood: "summary",
         actions: [
-          { id: "primary", label: "סיום", event: { t: "FINISH" } },
-          { id: "add", label: "סט נוסף", event: { t: "ADD_SET" } }
+          { id: "primary", label: "Finish", event: { t: "FINISH" } },
+          { id: "add", label: "Add set", event: { t: "ADD_SET" } }
         ]
       };
     }
@@ -830,10 +830,10 @@
       var nex = exerciseOf(plan, next);
       var nprog = setProgress(plan, state.cursor);
       var restMeta = remain <= 10
-        ? "מתכוננים · " + nex.name
-        : "הבא: " + nex.name + " · " + nprog.current + "/" + nprog.total;
+        ? "Get ready · " + nex.name
+        : "Next: " + nex.name + " · " + nprog.current + "/" + nprog.total;
       return {
-        eyebrow: remain <= 10 ? "כמעט שם" : "הפסקה · תנשום",
+        eyebrow: remain <= 10 ? "Almost there" : "Rest · breathe",
         heading: nex.name,
         hero: formatClock(remain),
         meta: restMeta,
@@ -841,8 +841,8 @@
         progress: pct,
         mood: "rest",
         actions: [
-          { id: "primary", label: "דלג מנוחה", event: { t: "PRIMARY" } },
-          { id: "undo", label: "בטל סט", event: { t: "UNDO" } }
+          { id: "primary", label: "Skip rest", event: { t: "PRIMARY" } },
+          { id: "undo", label: "Undo set", event: { t: "UNDO" } }
         ]
       };
     }
@@ -855,28 +855,28 @@
 
     if (state.phase === "SetActive") {
       return {
-        eyebrow: "סט " + prog.current + "/" + prog.total + " · בעבודה",
+        eyebrow: "Set " + prog.current + "/" + prog.total + " · working",
         heading: ex.name,
         hero: hero,
-        meta: "כשסיימת — סמן",
+        meta: "Tap when finished",
         demo: null,
         progress: pct,
         mood: "active",
-        actions: [{ id: "primary", label: "סיימתי", event: { t: "PRIMARY" } }]
+        actions: [{ id: "primary", label: "Done", event: { t: "PRIMARY" } }]
       };
     }
 
     return {
-      eyebrow: "סט " + prog.current + "/" + prog.total,
+      eyebrow: "Set " + prog.current + "/" + prog.total,
       heading: ex.name,
       hero: hero,
-      meta: ex.cue || "מוכן כשאתה מוכן",
+      meta: ex.cue || "Ready when you are",
       demo: null,
       progress: pct,
       mood: "ready",
       actions: [
-        { id: "primary", label: "התחל סט", event: { t: "PRIMARY" } },
-        { id: "howto", label: "איך עושים?", event: { t: "HOW_TO" } }
+        { id: "primary", label: "Start set", event: { t: "PRIMARY" } },
+        { id: "howto", label: "How to?", event: { t: "HOW_TO" } }
       ]
     };
   }
