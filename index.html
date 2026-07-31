@@ -27,35 +27,61 @@
     height: 600px;
     display: flex;
     flex-direction: column;
-    padding: 16px 20px 12px;
+    padding: 14px 20px 10px;
   }
   #heading {
     font-size: 28px;
     font-weight: 700;
     color: var(--accent);
     line-height: 1.15;
-    min-height: 36px;
+    min-height: 34px;
     letter-spacing: 0.02em;
   }
+  #demoWrap {
+    display: none;
+    width: 240px;
+    height: 200px;
+    margin: 8px auto 4px;
+    flex-shrink: 0;
+  }
+  #demoWrap.on { display: block; }
+  #demo {
+    width: 240px;
+    height: 200px;
+    display: block;
+    background: #000;
+  }
   #hero {
-    font-size: 72px;
+    font-size: 64px;
     font-weight: 800;
     line-height: 1;
-    margin: 18px 0 8px;
-    min-height: 80px;
+    margin: 14px 0 6px;
+    min-height: 72px;
+    color: var(--fg);
+  }
+  #hero.empty {
+    min-height: 0;
+    margin: 0;
+    font-size: 0;
+  }
+  #app.teach #hero {
+    font-size: 26px;
+    font-weight: 700;
+    min-height: 32px;
+    margin: 4px 0 2px;
     color: var(--fg);
   }
   #meta {
-    font-size: 20px;
+    font-size: 18px;
     color: var(--muted);
-    min-height: 28px;
-    margin-bottom: 12px;
+    min-height: 24px;
+    margin-bottom: 8px;
   }
   #actions {
     margin-top: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .btn {
     min-height: 88px;
@@ -100,9 +126,7 @@
     white-space: pre-wrap;
     z-index: 10000;
   }
-  .desktop-hint {
-    display: none;
-  }
+  .desktop-hint { display: none; }
   @media (min-width: 700px) {
     body {
       width: 100vw;
@@ -112,9 +136,7 @@
       justify-content: center;
       background: #111;
     }
-    #app {
-      outline: 1px solid #333;
-    }
+    #app { outline: 1px solid #333; }
     .desktop-hint {
       display: block;
       position: fixed;
@@ -132,6 +154,7 @@
 <div class="desktop-hint">Desktop: arrows + Enter. Glasses: Neural Band / captouch.</div>
 <div id="app">
   <div id="heading"></div>
+  <div id="demoWrap"><canvas id="demo" width="240" height="200"></canvas></div>
   <div id="hero"></div>
   <div id="meta"></div>
   <div id="actions"></div>
@@ -150,37 +173,230 @@
     window.onerror(String(e.reason && e.reason.message || e.reason), "", 0, 0, e.reason);
   };
 
-  // --- Plan (hardcoded v1) ---
-  var PLAN = {
-    id: "push-a",
-    name: "Push A",
-    exercises: {
-      bench: { id: "bench", name: "Bench Press", unit: "kg" },
-      ohp: { id: "ohp", name: "OH Press", unit: "kg" },
-      incline: { id: "incline", name: "Incline DB", unit: "kg" },
-      tri: { id: "tri", name: "Tri Pushdown", unit: "kg" }
+  // --- Exercise library (cue ≤28, steps ≤28, name ≤18) ---
+  var EX = {
+    legpress: {
+      id: "legpress", name: "Leg press", unit: "kg",
+      cue: "Machine · adjust seat",
+      demo: "press",
+      steps: [
+        "Sit · back flat",
+        "Feet mid platform",
+        "Unlock handles",
+        "Press out slow",
+        "Bend knees control"
+      ]
     },
-    sets: [
-      { exerciseId: "bench", targetReps: 8, targetWeightKg: 60, restSec: 90 },
-      { exerciseId: "bench", targetReps: 8, targetWeightKg: 60, restSec: 90 },
-      { exerciseId: "bench", targetReps: 8, targetWeightKg: 60, restSec: 90 },
-      { exerciseId: "ohp", targetReps: 8, targetWeightKg: 35, restSec: 90 },
-      { exerciseId: "ohp", targetReps: 8, targetWeightKg: 35, restSec: 90 },
-      { exerciseId: "ohp", targetReps: 8, targetWeightKg: 35, restSec: 75 },
-      { exerciseId: "incline", targetReps: 10, targetWeightKg: 22.5, restSec: 75 },
-      { exerciseId: "incline", targetReps: 10, targetWeightKg: 22.5, restSec: 75 },
-      { exerciseId: "incline", targetReps: 10, targetWeightKg: 22.5, restSec: 60 },
-      { exerciseId: "tri", targetReps: 12, targetWeightKg: 25, restSec: 60 },
-      { exerciseId: "tri", targetReps: 12, targetWeightKg: 25, restSec: 60 },
-      { exerciseId: "tri", targetReps: 12, targetWeightKg: 25, restSec: 0 }
-    ]
+    chestpress: {
+      id: "chestpress", name: "Chest press", unit: "kg",
+      cue: "Machine · seat height",
+      demo: "press",
+      steps: [
+        "Sit · back flat",
+        "Handles at chest",
+        "Grip firm · wrists",
+        "Press out slow",
+        "Return with control"
+      ]
+    },
+    latpulldown: {
+      id: "latpulldown", name: "Lat pulldown", unit: "kg",
+      cue: "Cable · high bar",
+      demo: "pulldown",
+      steps: [
+        "Sit · pin thighs",
+        "Wide grip on bar",
+        "Chest up slightly",
+        "Pull bar to chest",
+        "Raise arms slow"
+      ]
+    },
+    shpress: {
+      id: "shpress", name: "Shoulder press", unit: "kg",
+      cue: "Machine · seat up",
+      demo: "press",
+      steps: [
+        "Sit · back supported",
+        "Handles at shoulders",
+        "Press up slow",
+        "Do not lock hard",
+        "Lower with control"
+      ]
+    },
+    cablecurl: {
+      id: "cablecurl", name: "Cable curl", unit: "kg",
+      cue: "Cable · low pulley",
+      demo: "curl",
+      steps: [
+        "Stand · elbows in",
+        "Grip bar underhand",
+        "Curl to shoulders",
+        "Keep elbows still",
+        "Lower slow"
+      ]
+    },
+    plank: {
+      id: "plank", name: "Plank", unit: "time",
+      cue: "Floor · brace hard",
+      demo: "plank",
+      steps: [
+        "Forearms on floor",
+        "Body in one line",
+        "Brace abs hard",
+        "Breathe steady",
+        "Hold the time"
+      ]
+    },
+    incline: {
+      id: "incline", name: "Incline press", unit: "kg",
+      cue: "Machine · slight up",
+      demo: "press",
+      steps: [
+        "Sit · back on pad",
+        "Handles at chest",
+        "Press up and out",
+        "Stop short of lock",
+        "Lower slow"
+      ]
+    },
+    tripush: {
+      id: "tripush", name: "Tricep pushdown", unit: "kg",
+      cue: "Cable · high pulley",
+      demo: "pulldown",
+      steps: [
+        "Stand · elbows pinned",
+        "Grip bar / rope",
+        "Push down to hips",
+        "Squeeze at bottom",
+        "Return slow"
+      ]
+    },
+    legcurl: {
+      id: "legcurl", name: "Leg curl", unit: "kg",
+      cue: "Machine · pad calves",
+      demo: "curl",
+      steps: [
+        "Lie or sit set",
+        "Pad on lower legs",
+        "Curl heels to you",
+        "Squeeze hamstrings",
+        "Lower slow"
+      ]
+    },
+    legext: {
+      id: "legext", name: "Leg extension", unit: "kg",
+      cue: "Machine · pad shins",
+      demo: "press",
+      steps: [
+        "Sit · back flat",
+        "Pad on lower shins",
+        "Extend knees out",
+        "Do not snap lock",
+        "Lower control"
+      ]
+    },
+    calfraise: {
+      id: "calfraise", name: "Calf raise", unit: "kg",
+      cue: "Machine · toes edge",
+      demo: "raise",
+      steps: [
+        "Toes on platform",
+        "Heels hang free",
+        "Rise onto toes",
+        "Pause at top",
+        "Lower heels slow"
+      ]
+    },
+    bwsquat: {
+      id: "bwsquat", name: "BW squat", unit: "bodyweight",
+      cue: "Floor · own weight",
+      demo: "press",
+      steps: [
+        "Feet shoulder wide",
+        "Chest up · brace",
+        "Sit hips back",
+        "Knees track toes",
+        "Stand tall"
+      ]
+    }
   };
 
-  var STORE_KEY = "setpace_session_v1";
+  function setsOf(exId, reps, kg, n, rest) {
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      out.push({
+        exerciseId: exId,
+        targetReps: reps,
+        targetWeightKg: kg,
+        restSec: i === n - 1 ? rest.last : rest.mid
+      });
+    }
+    return out;
+  }
+
+  var PLANS = {
+    fullbody: {
+      id: "fullbody",
+      name: "Full body",
+      exercises: {
+        legpress: EX.legpress,
+        chestpress: EX.chestpress,
+        latpulldown: EX.latpulldown,
+        shpress: EX.shpress,
+        cablecurl: EX.cablecurl,
+        plank: EX.plank
+      },
+      sets: []
+        .concat(setsOf("legpress", 10, 40, 2, { mid: 90, last: 90 }))
+        .concat(setsOf("chestpress", 10, 20, 2, { mid: 90, last: 90 }))
+        .concat(setsOf("latpulldown", 10, 25, 2, { mid: 75, last: 75 }))
+        .concat(setsOf("shpress", 10, 15, 2, { mid: 75, last: 75 }))
+        .concat(setsOf("cablecurl", 12, 12, 2, { mid: 60, last: 60 }))
+        .concat(setsOf("plank", 30, null, 2, { mid: 45, last: 0 }))
+    },
+    upper: {
+      id: "upper",
+      name: "Upper push",
+      exercises: {
+        chestpress: EX.chestpress,
+        shpress: EX.shpress,
+        incline: EX.incline,
+        tripush: EX.tripush
+      },
+      sets: []
+        .concat(setsOf("chestpress", 10, 25, 3, { mid: 90, last: 90 }))
+        .concat(setsOf("shpress", 10, 15, 3, { mid: 90, last: 75 }))
+        .concat(setsOf("incline", 10, 20, 3, { mid: 75, last: 75 }))
+        .concat(setsOf("tripush", 12, 20, 3, { mid: 60, last: 0 }))
+    },
+    legs: {
+      id: "legs",
+      name: "Legs",
+      exercises: {
+        legpress: EX.legpress,
+        legcurl: EX.legcurl,
+        legext: EX.legext,
+        calfraise: EX.calfraise,
+        bwsquat: EX.bwsquat
+      },
+      sets: []
+        .concat(setsOf("legpress", 10, 40, 3, { mid: 90, last: 90 }))
+        .concat(setsOf("legcurl", 12, 25, 3, { mid: 75, last: 75 }))
+        .concat(setsOf("legext", 12, 25, 3, { mid: 75, last: 75 }))
+        .concat(setsOf("calfraise", 15, 30, 3, { mid: 60, last: 60 }))
+        .concat(setsOf("bwsquat", 12, null, 2, { mid: 60, last: 0 }))
+    }
+  };
+
+  var STORE_KEY = "setpace_session_v2";
   var IDEMPOTENCY_MS = 250;
   var STALE_CUE_MS = 30000;
 
   function now() { return Date.now(); }
+
+  function clonePlan(id) {
+    return JSON.parse(JSON.stringify(PLANS[id]));
+  }
 
   function exerciseOf(plan, set) {
     return plan.exercises[set.exerciseId];
@@ -212,25 +428,62 @@
     return m + ":" + (s < 10 ? "0" : "") + s;
   }
 
-  function heroLine(set) {
+  function heroForSet(set, reps, ex) {
+    if (ex && ex.unit === "time") return formatClock(reps);
+    if (ex && ex.unit === "bodyweight") return "x " + reps;
     var w = formatWeight(set.targetWeightKg);
-    if (w) return w + " x " + set.targetReps;
-    return "x " + set.targetReps;
+    return w ? w + " x " + reps : "x " + reps;
+  }
+
+  function needsTeach(state, plan, cursor) {
+    var set = plan.sets[cursor];
+    if (!set) return false;
+    var ex = exerciseOf(plan, set);
+    if (!ex || !ex.steps || !ex.steps.length) return false;
+    return state.taught.indexOf(ex.id) === -1;
+  }
+
+  function markTaught(state, plan, cursor) {
+    var set = plan.sets[cursor];
+    if (!set) return;
+    var id = set.exerciseId;
+    if (state.taught.indexOf(id) === -1) state.taught.push(id);
   }
 
   // --- Reducer ---
-  function freshSession(planId, t) {
+  function idleState(t) {
     return {
-      schemaVersion: 1,
-      planId: planId,
-      startedAt: t,
+      schemaVersion: 2,
+      planId: null,
+      startedAt: null,
       cursor: 0,
       logged: [],
-      phase: "SetReady",
+      phase: "PlanSelect",
       phaseEnteredAt: t,
       setStartedAt: null,
       restEndsAt: null,
       adjust: null,
+      teachStep: 0,
+      taught: [],
+      paused: false,
+      pendingCue: null
+    };
+  }
+
+  function freshSession(planId, t) {
+    return {
+      schemaVersion: 2,
+      planId: planId,
+      startedAt: t,
+      cursor: 0,
+      logged: [],
+      phase: "Teach",
+      phaseEnteredAt: t,
+      setStartedAt: null,
+      restEndsAt: null,
+      adjust: null,
+      teachStep: 0,
+      taught: [],
       paused: false,
       pendingCue: null
     };
@@ -264,6 +517,17 @@
     });
   }
 
+  function goToCursorReadyOrTeach(state, plan, t) {
+    state.setStartedAt = null;
+    state.adjust = null;
+    state.restEndsAt = null;
+    if (needsTeach(state, plan, state.cursor)) {
+      state.teachStep = 0;
+      return enter(state, "Teach", t);
+    }
+    return enter(state, "SetReady", t);
+  }
+
   function advanceAfterSet(state, plan, t) {
     var finished = plan.sets[state.cursor];
     state.cursor += 1;
@@ -274,10 +538,7 @@
       return enter(state, "Summary", t);
     }
     if (!finished.restSec) {
-      state.restEndsAt = null;
-      state.setStartedAt = null;
-      state.adjust = null;
-      return enter(state, "SetReady", t);
+      return goToCursorReadyOrTeach(state, plan, t);
     }
     state.restEndsAt = t + finished.restSec * 1000;
     state.setStartedAt = null;
@@ -287,16 +548,22 @@
     return enter(state, "Resting", t);
   }
 
-  function endRest(state, t, skipped, planLen) {
+  function endRest(state, t, skipped, plan) {
     var last = state.logged[state.logged.length - 1];
     if (last) {
       last.restEndedAt = t;
       last.restSkipped = !!skipped;
     }
     state.restEndsAt = null;
-    if (state.cursor >= planLen) {
+    if (state.cursor >= plan.sets.length) {
       return enter(state, "Summary", t);
     }
+    return goToCursorReadyOrTeach(state, plan, t);
+  }
+
+  function finishTeach(state, plan, t) {
+    markTaught(state, plan, state.cursor);
+    state.teachStep = 0;
     return enter(state, "SetReady", t);
   }
 
@@ -307,7 +574,7 @@
       state.paused = !event.visible;
       if (event.visible && state.phase === "Resting" && state.restEndsAt != null && t >= state.restEndsAt) {
         var overdue = t - state.restEndsAt;
-        state = endRest(state, t, false, plan.sets.length);
+        state = endRest(state, t, false, plan);
         if (overdue <= STALE_CUE_MS) state.pendingCue = "rest_over";
       }
       return state;
@@ -315,17 +582,44 @@
 
     if (event.t === "TICK") {
       if (state.phase === "Resting" && state.restEndsAt != null && t >= state.restEndsAt) {
-        state = endRest(state, t, false, plan.sets.length);
+        state = endRest(state, t, false, plan);
         state.pendingCue = "rest_over";
       }
       return state;
     }
 
-    if (state.paused && event.t !== "OPEN") return state;
+    if (state.paused && event.t !== "SELECT_PLAN") return state;
 
-    if (event.t === "OPEN") {
-      resetPlan();
-      return freshSession(PLAN.id, t);
+    if (event.t === "SELECT_PLAN") {
+      if (!PLANS[event.planId]) return state;
+      plan = clonePlan(event.planId);
+      resetPlanTo(event.planId);
+      return freshSession(event.planId, t);
+    }
+
+    if (event.t === "TEACH_NEXT") {
+      if (state.phase !== "Teach") return state;
+      if (withinIdempotency(state, t)) return state;
+      var exT = exerciseOf(plan, plan.sets[state.cursor]);
+      var steps = (exT && exT.steps) || [];
+      if (state.teachStep >= steps.length - 1) {
+        return finishTeach(state, plan, t);
+      }
+      state.teachStep += 1;
+      state.phaseEnteredAt = t;
+      return state;
+    }
+
+    if (event.t === "TEACH_SKIP") {
+      if (state.phase !== "Teach") return state;
+      if (withinIdempotency(state, t)) return state;
+      return finishTeach(state, plan, t);
+    }
+
+    if (event.t === "HOW_TO") {
+      if (state.phase !== "SetReady") return state;
+      state.teachStep = 0;
+      return enter(state, "Teach", t);
     }
 
     if (event.t === "PRIMARY") {
@@ -342,8 +636,7 @@
         return advanceAfterSet(state, plan, t);
       }
       if (state.phase === "Resting") {
-        state = endRest(state, t, true, plan.sets.length);
-        return state;
+        return endRest(state, t, true, plan);
       }
       return state;
     }
@@ -381,30 +674,53 @@
     if (event.t === "FINISH") {
       if (state.phase !== "Summary") return state;
       try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-      return { phase: "Idle", schemaVersion: 1, planId: null, startedAt: null, cursor: 0, logged: [], phaseEnteredAt: t, setStartedAt: null, restEndsAt: null, adjust: null, paused: false, pendingCue: null };
+      resetPlanTo(null);
+      return idleState(t);
     }
 
     if (event.t === "ADD_SET") {
       if (state.phase !== "Summary") return state;
-      // session-local overlay: append copy of last planned set
       var lastSet = plan.sets[plan.sets.length - 1];
       plan.sets.push(JSON.parse(JSON.stringify(lastSet)));
       state.cursor = plan.sets.length - 1;
       state.adjust = null;
-      return enter(state, "SetReady", t);
+      return goToCursorReadyOrTeach(state, plan, t);
     }
 
     return state;
   }
 
-  // --- Render to Frame ---
+  // --- Render ---
   function render(state, t, plan) {
-    if (!state || state.phase === "Idle") {
+    if (!state || state.phase === "PlanSelect" || state.phase === "Idle") {
       return {
-        heading: "SetPace",
-        hero: "Push A",
-        meta: plan.sets.length + " sets",
-        actions: [{ id: "primary", label: "Start", event: { t: "OPEN" } }]
+        heading: "What today?",
+        hero: "",
+        meta: "Pick a workout",
+        demo: null,
+        actions: [
+          { id: "plan_full", label: "Full body", event: { t: "SELECT_PLAN", planId: "fullbody" } },
+          { id: "plan_upper", label: "Upper push", event: { t: "SELECT_PLAN", planId: "upper" } },
+          { id: "plan_legs", label: "Legs", event: { t: "SELECT_PLAN", planId: "legs" } }
+        ]
+      };
+    }
+
+    if (state.phase === "Teach") {
+      var tset = plan.sets[state.cursor];
+      var tex = exerciseOf(plan, tset);
+      var steps = tex.steps || [];
+      var idx = Math.min(state.teachStep, Math.max(0, steps.length - 1));
+      var last = idx >= steps.length - 1;
+      return {
+        heading: tex.name,
+        hero: steps[idx] || "",
+        meta: "Step " + (idx + 1) + "/" + steps.length,
+        demo: tex.demo || "press",
+        actions: [
+          { id: "primary", label: last ? "Got it" : "Next", event: { t: "TEACH_NEXT" } },
+          { id: "skip", label: "Skip", event: { t: "TEACH_SKIP" } }
+        ]
       };
     }
 
@@ -413,8 +729,9 @@
       var aex = exerciseOf(plan, aset);
       return {
         heading: aex.name,
-        hero: String(state.adjust.reps) + " reps",
+        hero: String(state.adjust.reps) + (aex.unit === "time" ? " sec" : " reps"),
         meta: "Adjust reps",
+        demo: null,
         actions: [
           { id: "minus", label: "−1", event: { t: "ADJUST_DELTA", delta: -1 } },
           { id: "plus", label: "+1", event: { t: "ADJUST_DELTA", delta: 1 } },
@@ -434,6 +751,7 @@
         heading: "Done",
         hero: String(state.logged.length) + " sets",
         meta: mins + " min · " + Math.round(volume) + " kg",
+        demo: null,
         actions: [
           { id: "primary", label: "Finish", event: { t: "FINISH" } },
           { id: "add", label: "Add set", event: { t: "ADD_SET" } }
@@ -450,6 +768,7 @@
         heading: "Rest",
         hero: formatClock(remain),
         meta: "Next: " + nex.name + " " + nprog.current + "/" + nprog.total,
+        demo: null,
         actions: [
           { id: "primary", label: "Skip rest", event: { t: "PRIMARY" } },
           { id: "undo", label: "Undo set", event: { t: "UNDO" } }
@@ -461,28 +780,212 @@
     var ex = exerciseOf(plan, set);
     var prog = setProgress(plan, state.cursor);
     var reps = state.adjust ? state.adjust.reps : set.targetReps;
-    var hero = formatWeight(set.targetWeightKg);
-    hero = hero ? hero + " x " + reps : "x " + reps;
+    var hero = heroForSet(set, reps, ex);
+    var metaLine = (ex.cue || "") + " · " + prog.current + "/" + prog.total;
+    if (metaLine.length > 28) metaLine = (ex.cue || "").slice(0, 18) + " · " + prog.current + "/" + prog.total;
 
     if (state.phase === "SetActive") {
       return {
         heading: ex.name,
         hero: hero,
         meta: "Set " + prog.current + "/" + prog.total + " · lifting",
+        demo: null,
         actions: [{ id: "primary", label: "Done", event: { t: "PRIMARY" } }]
       };
     }
 
-    // SetReady
+    // SetReady: Start + How to (Adjust omitted — 88px budget with cue)
     return {
       heading: ex.name,
       hero: hero,
-      meta: "Set " + prog.current + "/" + prog.total,
+      meta: metaLine,
+      demo: null,
       actions: [
         { id: "primary", label: "Start set", event: { t: "PRIMARY" } },
-        { id: "adjust", label: "Adjust", event: { t: "ADJUST" } }
+        { id: "howto", label: "How to", event: { t: "HOW_TO" } }
       ]
     };
+  }
+
+  // --- Canvas demos ---
+  var demoCanvas = document.getElementById("demo");
+  var demoCtx = demoCanvas.getContext("2d");
+  var demoRaf = null;
+  var demoKind = null;
+  var demoStart = 0;
+
+  function stopDemo() {
+    if (demoRaf) {
+      cancelAnimationFrame(demoRaf);
+      demoRaf = null;
+    }
+    demoKind = null;
+  }
+
+  function strokeFigure(ctx) {
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#00e5ff";
+    ctx.fillStyle = "#00e5ff";
+    ctx.lineWidth = 4;
+  }
+
+  function head(ctx, x, y, r) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  function limb(ctx, x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  function ease(p) {
+    return 0.5 - 0.5 * Math.cos(Math.PI * 2 * p);
+  }
+
+  function drawPress(ctx, p) {
+    var a = ease(p);
+    var push = a * 36;
+    strokeFigure(ctx);
+    // seat
+    ctx.strokeStyle = "#7aa8b0";
+    ctx.lineWidth = 3;
+    limb(ctx, 40, 155, 120, 155);
+    limb(ctx, 55, 155, 55, 175);
+    limb(ctx, 105, 155, 105, 175);
+    strokeFigure(ctx);
+    head(ctx, 78, 70, 12);
+    limb(ctx, 78, 82, 78, 120); // torso
+    limb(ctx, 78, 120, 55, 155); // thigh
+    limb(ctx, 78, 120, 100, 155);
+    // arms push forward
+    limb(ctx, 78, 95, 110 + push, 90);
+    limb(ctx, 78, 95, 110 + push, 105);
+    // handles / pad
+    ctx.strokeStyle = "#e8ffff";
+    ctx.lineWidth = 3;
+    limb(ctx, 110 + push, 82, 110 + push, 112);
+  }
+
+  function drawPulldown(ctx, p) {
+    var a = ease(p);
+    var down = a * 40;
+    strokeFigure(ctx);
+    ctx.strokeStyle = "#7aa8b0";
+    ctx.lineWidth = 3;
+    limb(ctx, 50, 170, 190, 170); // seat/base
+    strokeFigure(ctx);
+    head(ctx, 120, 95, 12);
+    limb(ctx, 120, 107, 120, 145);
+    limb(ctx, 120, 145, 95, 170);
+    limb(ctx, 120, 145, 145, 170);
+    // arms from high bar
+    var handY = 55 + down;
+    limb(ctx, 120, 120, 85, handY);
+    limb(ctx, 120, 120, 155, handY);
+    ctx.strokeStyle = "#e8ffff";
+    ctx.lineWidth = 3;
+    limb(ctx, 70, handY, 170, handY);
+    // cable
+    ctx.strokeStyle = "#7aa8b0";
+    limb(ctx, 120, 20, 120, handY);
+  }
+
+  function drawCurl(ctx, p) {
+    var a = ease(p);
+    var bend = a * 0.9;
+    strokeFigure(ctx);
+    head(ctx, 90, 50, 12);
+    limb(ctx, 90, 62, 90, 120);
+    limb(ctx, 90, 120, 70, 165);
+    limb(ctx, 90, 120, 115, 165);
+    // upper arm fixed, forearm curls
+    var elbowX = 115, elbowY = 95;
+    limb(ctx, 90, 80, elbowX, elbowY);
+    var handX = elbowX + Math.cos(-0.2 - bend * 1.4) * 40;
+    var handY = elbowY + Math.sin(-0.2 - bend * 1.4) * 40;
+    limb(ctx, elbowX, elbowY, handX, handY);
+    ctx.strokeStyle = "#e8ffff";
+    ctx.lineWidth = 3;
+    limb(ctx, handX - 8, handY, handX + 8, handY);
+  }
+
+  function drawRaise(ctx, p) {
+    var a = ease(p);
+    var lift = a * 22;
+    strokeFigure(ctx);
+    head(ctx, 120, 40, 12);
+    limb(ctx, 120, 52, 120, 110);
+    // legs
+    limb(ctx, 120, 110, 100, 150 - lift);
+    limb(ctx, 120, 110, 140, 150 - lift);
+    // feet / platform
+    ctx.strokeStyle = "#7aa8b0";
+    ctx.lineWidth = 3;
+    limb(ctx, 70, 165, 170, 165);
+    strokeFigure(ctx);
+    limb(ctx, 95, 150 - lift, 105, 150 - lift);
+    limb(ctx, 135, 150 - lift, 145, 150 - lift);
+    // heels indicator
+    ctx.strokeStyle = "#e8ffff";
+    ctx.lineWidth = 3;
+    limb(ctx, 100, 150 - lift, 100, 162 - lift * 0.3);
+    limb(ctx, 140, 150 - lift, 140, 162 - lift * 0.3);
+  }
+
+  function drawPlank(ctx, p) {
+    var pulse = 0.85 + 0.15 * Math.sin(p * Math.PI * 2);
+    strokeFigure(ctx);
+    ctx.globalAlpha = pulse;
+    // body line
+    head(ctx, 55, 95, 10);
+    limb(ctx, 65, 100, 170, 100);
+    // arms
+    limb(ctx, 75, 100, 70, 130);
+    limb(ctx, 75, 100, 85, 130);
+    // legs
+    limb(ctx, 170, 100, 195, 130);
+    limb(ctx, 170, 100, 185, 130);
+    ctx.strokeStyle = "#7aa8b0";
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 1;
+    limb(ctx, 40, 135, 210, 135);
+  }
+
+  function drawDemoFrame(kind, t0) {
+    var ctx = demoCtx;
+    var w = demoCanvas.width;
+    var h = demoCanvas.height;
+    ctx.clearRect(0, 0, w, h);
+    var elapsed = (t0 - demoStart) / 1000;
+    var period = kind === "plank" ? 1.6 : 1.4;
+    var p = (elapsed % period) / period;
+    if (kind === "press") drawPress(ctx, p);
+    else if (kind === "pulldown") drawPulldown(ctx, p);
+    else if (kind === "curl") drawCurl(ctx, p);
+    else if (kind === "raise") drawRaise(ctx, p);
+    else if (kind === "plank") drawPlank(ctx, p);
+    else drawPress(ctx, p);
+  }
+
+  function startDemo(kind) {
+    if (!kind) {
+      stopDemo();
+      return;
+    }
+    if (demoKind === kind && demoRaf) return;
+    stopDemo();
+    demoKind = kind;
+    demoStart = performance.now();
+    function loop(ts) {
+      drawDemoFrame(kind, ts);
+      demoRaf = requestAnimationFrame(loop);
+    }
+    demoRaf = requestAnimationFrame(loop);
   }
 
   // --- Audio + flash ---
@@ -552,10 +1055,12 @@
     flashPulse();
   }
 
-  // --- DOM commit (keyed) ---
+  // --- DOM commit ---
+  var appEl = document.getElementById("app");
   var headingEl = document.getElementById("heading");
   var heroEl = document.getElementById("hero");
   var metaEl = document.getElementById("meta");
+  var demoWrap = document.getElementById("demoWrap");
   var actionsEl = document.getElementById("actions");
   var lastFocusId = "primary";
   var actionHandlers = {};
@@ -563,7 +1068,19 @@
   function commit(frame) {
     headingEl.textContent = frame.heading || "";
     heroEl.textContent = frame.hero || "";
+    if (!frame.hero) heroEl.classList.add("empty");
+    else heroEl.classList.remove("empty");
     metaEl.textContent = frame.meta || "";
+
+    if (frame.demo) {
+      appEl.classList.add("teach");
+      demoWrap.classList.add("on");
+      startDemo(frame.demo);
+    } else {
+      appEl.classList.remove("teach");
+      demoWrap.classList.remove("on");
+      stopDemo();
+    }
 
     var existing = {};
     var kids = actionsEl.querySelectorAll(".btn");
@@ -572,11 +1089,9 @@
     }
 
     var keep = {};
-    var order = [];
     for (var a = 0; a < frame.actions.length; a++) {
       var action = frame.actions[a];
       keep[action.id] = true;
-      order.push(action);
       actionHandlers[action.id] = action.event;
       var btn = existing[action.id];
       if (!btn) {
@@ -611,19 +1126,23 @@
   // --- App loop ---
   var state = null;
   var tickTimer = null;
-  var plan = JSON.parse(JSON.stringify(PLAN));
+  var plan = clonePlan("fullbody");
 
-  function resetPlan() {
-    plan = JSON.parse(JSON.stringify(PLAN));
+  function resetPlanTo(planId) {
+    if (planId && PLANS[planId]) plan = clonePlan(planId);
   }
 
   function save() {
-    if (!state || state.phase === "Idle") {
+    if (!state || state.phase === "PlanSelect" || state.phase === "Idle") {
       try { localStorage.removeItem(STORE_KEY); } catch (e) {}
       return;
     }
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ state: state, planSetsLen: plan.sets.length }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        state: state,
+        planId: state.planId,
+        planSetsLen: plan.sets.length
+      }));
     } catch (e) {}
   }
 
@@ -633,16 +1152,22 @@
       if (!raw) return null;
       var wrapped = JSON.parse(raw);
       var s = wrapped.state || wrapped;
-      if (!s || s.schemaVersion !== 1) return null;
+      if (!s || (s.schemaVersion !== 2 && s.schemaVersion !== 1)) return null;
       if (s.startedAt && now() - s.startedAt > 6 * 60 * 60 * 1000) {
         localStorage.removeItem(STORE_KEY);
         return null;
       }
-      resetPlan();
-      var extra = (wrapped.planSetsLen || plan.sets.length) - PLAN.sets.length;
+      var pid = wrapped.planId || s.planId;
+      if (!pid || !PLANS[pid]) return null;
+      resetPlanTo(pid);
+      var baseLen = PLANS[pid].sets.length;
+      var extra = (wrapped.planSetsLen || plan.sets.length) - baseLen;
       for (var i = 0; i < extra; i++) {
-        plan.sets.push(JSON.parse(JSON.stringify(PLAN.sets[PLAN.sets.length - 1])));
+        plan.sets.push(JSON.parse(JSON.stringify(PLANS[pid].sets[PLANS[pid].sets.length - 1])));
       }
+      if (!s.taught) s.taught = [];
+      if (s.teachStep == null) s.teachStep = 0;
+      s.schemaVersion = 2;
       return s;
     } catch (e) { return null; }
   }
@@ -669,15 +1194,26 @@
     if (!event) return;
     var prevPhase = state && state.phase;
     var t = now();
+
+    if (event.t === "SELECT_PLAN") {
+      resetPlanTo(event.planId);
+      state = freshSession(event.planId, t);
+      lastFocusId = "primary";
+      save();
+      paint();
+      scheduleTick();
+      return;
+    }
+
     if (!state) {
-      if (event.t === "OPEN") {
-        state = freshSession(plan.id, t);
-      } else {
-        state = { phase: "Idle", schemaVersion: 1, planId: null, startedAt: null, cursor: 0, logged: [], phaseEnteredAt: t, setStartedAt: null, restEndsAt: null, adjust: null, paused: false, pendingCue: null };
-        state = reducer(state, event, t, plan);
-      }
-    } else {
-      state = reducer(state, event, t, plan);
+      state = idleState(t);
+    }
+    state = reducer(state, event, t, plan);
+
+    // SELECT_PLAN inside reducer also calls resetPlanTo
+    if (state.planId && (!plan || plan.id !== state.planId) && PLANS[state.planId]) {
+      // keep plan in sync if reducer cloned path skipped
+      if (plan.id !== state.planId) resetPlanTo(state.planId);
     }
 
     if (state.pendingCue === "rest_over") {
@@ -688,8 +1224,9 @@
     if (state.phase !== prevPhase) {
       lastFocusId = "primary";
       if (state.phase === "Adjusting") lastFocusId = "minus";
+      if (state.phase === "PlanSelect") lastFocusId = "plan_full";
       save();
-    } else if (event.t === "ADJUST_DELTA" || event.t === "CONFIRM") {
+    } else if (event.t === "ADJUST_DELTA" || event.t === "CONFIRM" || event.t === "TEACH_NEXT") {
       save();
     }
 
@@ -697,7 +1234,6 @@
     scheduleTick();
   }
 
-  // Input: arrows move focus only; Enter dispatches
   document.addEventListener("keydown", function (e) {
     if (e.key === "ArrowDown" || e.key === "ArrowRight") {
       e.preventDefault();
@@ -729,7 +1265,8 @@
         lastFocusId = focused.dataset.id;
         dispatch(actionHandlers[focused.dataset.id]);
       } else {
-        dispatch(actionHandlers.primary || (state && state.phase === "Idle" ? { t: "OPEN" } : null));
+        var first = actionsEl.querySelector(".btn");
+        if (first) dispatch(actionHandlers[first.dataset.id]);
       }
     }
   });
@@ -740,10 +1277,9 @@
 
   // Boot
   var saved = load();
-  if (saved && saved.phase && saved.phase !== "Idle") {
+  if (saved && saved.phase && saved.phase !== "PlanSelect" && saved.phase !== "Idle") {
     state = saved;
     state.paused = document.hidden;
-    // If rest already ended while away, cue on next paint path via VISIBILITY
     if (state.phase === "Resting" && state.restEndsAt != null && now() >= state.restEndsAt) {
       dispatch({ t: "VISIBILITY", visible: true });
     } else {
@@ -751,7 +1287,8 @@
       scheduleTick();
     }
   } else {
-    state = { phase: "Idle", schemaVersion: 1, planId: null, startedAt: null, cursor: 0, logged: [], phaseEnteredAt: now(), setStartedAt: null, restEndsAt: null, adjust: null, paused: false, pendingCue: null };
+    state = idleState(now());
+    lastFocusId = "plan_full";
     paint();
   }
 })();

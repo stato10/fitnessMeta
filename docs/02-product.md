@@ -2,13 +2,31 @@
 
 ## 2.1 What SetPace is
 
-SetPace runs a strength workout on the glasses display. It answers one question
-at all times, without the user touching a phone:
+SetPace picks a beginner workout and runs it on the glasses display. It answers,
+without the user touching a phone:
 
-> What am I doing right now, and how long until the next thing?
+> What should I train today — and what am I doing right now?
 
-That is the whole product. It is not a coach, not a form checker, not a rep
-counter.
+The user chooses a plan (Full body / Upper push / Legs), then for each new
+exercise gets a short **Teach** flow: a looping stick-figure demo of the
+movement pattern plus 3–5 step cues (sit, grip, move). After that, the usual
+set → rest → next-set loop takes over.
+
+It is **not** a live form checker and not a rep counter. Teach steps are
+instructional cues only — the glasses cannot see the wearer, so they cannot
+verify technique. Deeper form learning stays off-device or before the session.
+
+## 2.1a Teach phase (beginners)
+
+Before the first set of each exercise (and again if the user selects **How to**
+from Set ready), the app enters `Teach`:
+
+- Canvas demo keyed by movement family: `press`, `pulldown`, `curl`, `raise`,
+  `plank` (no network video).
+- One short step on screen (≤28 chars) with `Step N/M`.
+- Primary: **Next** / **Got it**; secondary: **Skip**.
+- Subsequent sets of the same exercise skip Teach automatically.
+- When the next exercise differs, Teach runs again for that exercise.
 
 ## 2.2 Why rep counting is deliberately out of scope
 
@@ -49,11 +67,16 @@ backup) is load-bearing. Covered in 2.7.
 ## 2.4 The core loop
 
 ```
-Pick plan  ->  [ Set ready  ->  Set active  ->  Rest ] x N  ->  Summary
+Pick plan  ->  [ Teach (new exercise)  ->  Set ready  ->  Set active  ->  Rest ] x N  ->  Summary
 ```
 
-**Set ready.** Exercise name, target weight and reps, position in the workout.
-Default focus: start the set. The user glances once and starts lifting.
+**Plan select.** "What today?" with three curated beginner plans.
+
+**Teach.** Stick-figure demo + step text for machine setup and movement. Default
+focus: Next. Skip available for returning users.
+
+**Set ready.** Exercise name, equipment cue, target weight and reps, set index.
+Default focus: start the set. Secondary: How to (re-open Teach).
 
 **Set active.** Minimal static frame, exercise and target only. No countdown, no
 animation, nothing moving in peripheral vision while the user is under load.
@@ -129,8 +152,9 @@ Tone + flash together cover a noisy gym and a sleeping display. Motion during
 Recorded so they are not re-litigated later:
 
 - Automatic rep counting (2.2).
-- Form checking or injury warnings. Safety-critical claims from a monocular HUD
-  with no view of the user are not defensible.
+- Live form checking or injury warnings. Teach demos and step text are cues only;
+  safety-critical claims from a monocular HUD with no view of the user are not
+  defensible.
 - Camera use of any kind. It rules out the Web Apps path and buys nothing here.
 - Live cloud sync during a workout. Nothing that can fail belongs in the
   interaction loop.

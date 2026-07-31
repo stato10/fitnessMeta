@@ -4,16 +4,16 @@ A strength-workout runner for Meta Ray-Ban Display glasses. It shows the current
 set and the rest countdown in the lens, so the user never picks up a phone
 between sets.
 
-Status: Playable v1 on glasses — https://stato10.github.io/fitnessMeta/
+Status: Playable v1 — plan picker + Teach demos + workout loop —
+https://stato10.github.io/fitnessMeta/
 
 ## The idea in one paragraph
 
-The user loads a workout plan before training. On the glasses they see the
-current exercise, the target weight and reps, and their position in the workout.
-They select once when a set is done, a rest countdown starts, a tone (plus a
-full-screen flash) fires when rest is over, and the next set appears. Everything
-runs locally with no network in the interaction loop, and there is no camera and
-no automatic rep counting.
+The user picks what to train (Full body / Upper / Legs). Before each new
+exercise, SetPace shows a short looping stick-figure demo and step-by-step setup
+cues on the lens, then runs the set and rest countdown so they never pick up a
+phone between sets. Everything loads up front (no network video). There is no
+camera, no live form checking, and no automatic rep counting.
 
 Built as a Meta **Web App**: standard HTML, CSS and JavaScript running
 standalone on the glasses, with no companion mobile app.
@@ -23,10 +23,10 @@ standalone on the glasses, with no companion mobile app.
 - **Workout (product):** https://stato10.github.io/fitnessMeta/
 - **Hardware probe:** https://stato10.github.io/fitnessMeta/probe.html
 
-On glasses: Start → Start set → lift → Done → rest countdown → tone + flash →
-next set. Arrows move focus; Enter selects. Probe findings (audio works, display
-sleeps, full-screen flash works) are in
-[docs/04-edge-cases.md](docs/04-edge-cases.md) §4.5.
+On glasses: What today? → Teach (demo + Next steps) → Start set → Done → rest
+→ tone + flash → next set (Teach again when the exercise changes). Arrows move
+focus; Enter selects. Probe findings (audio works, display sleeps, full-screen
+flash works) are in [docs/04-edge-cases.md](docs/04-edge-cases.md) §4.5.
 
 ## Spec
 
