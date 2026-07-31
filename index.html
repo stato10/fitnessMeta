@@ -683,6 +683,7 @@
       adjust: null,
       teachStep: 0,
       taught: [],
+      menuReturn: null,
       paused: false,
       pendingCue: null
     };
@@ -703,6 +704,7 @@
       adjust: null,
       teachStep: 0,
       taught: [],
+      menuReturn: null,
       paused: false,
       pendingCue: null
     };
@@ -711,6 +713,12 @@
   function resolvePlanId(goal, equip) {
     if (equip === "free") return goal + "_free";
     return goal;
+  }
+
+  function resetToHome(t) {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    if (typeof resetPlanTo === "function") resetPlanTo("fullbody");
+    return idleState(t);
   }
 
   function enter(state, phase, t) {
@@ -796,8 +804,10 @@
 
     if (event.t === "VISIBILITY") {
       state.paused = !event.visible;
-      if (event.visible && state.phase === "Resting" && state.restEndsAt != null && t >= state.restEndsAt) {
+      if (event.visible && state.restEndsAt != null && t >= state.restEndsAt &&
+          (state.phase === "Resting" || state.menuReturn === "Resting")) {
         var overdue = t - state.restEndsAt;
+        state.menuReturn = null;
         state = endRest(state, t, false, plan);
         if (overdue <= STALE_CUE_MS) state.pendingCue = "rest_over";
       }
@@ -805,7 +815,9 @@
     }
 
     if (event.t === "TICK") {
-      if (state.phase === "Resting" && state.restEndsAt != null && t >= state.restEndsAt) {
+      if (state.restEndsAt != null && t >= state.restEndsAt &&
+          (state.phase === "Resting" || state.menuReturn === "Resting")) {
+        state.menuReturn = null;
         state = endRest(state, t, false, plan);
         state.pendingCue = "rest_over";
       }
@@ -850,9 +862,51 @@
     }
 
     if (event.t === "HOW_TO") {
-      if (state.phase !== "SetReady") return state;
+      if (state.phase !== "SetReady" && state.phase !== "Menu") return state;
       state.teachStep = 0;
+      state.menuReturn = null;
       return enter(state, "Teach", t);
+    }
+
+    if (event.t === "BACK") {
+      if (state.phase === "EquipSelect") {
+        state.pendingGoal = null;
+        return enter(state, "PlanSelect", t);
+      }
+      if (state.phase === "Menu") {
+        var backTo = state.menuReturn || "SetReady";
+        state.menuReturn = null;
+        return enter(state, backTo, t);
+      }
+      if (state.phase === "QuitConfirm") {
+        var ret = state.menuReturn || "SetReady";
+        state.menuReturn = null;
+        return enter(state, ret, t);
+      }
+      if (state.phase === "Teach") {
+        // leave teach without marking taught if mid-flow from SetReady how-to
+        state.teachStep = 0;
+        return enter(state, "SetReady", t);
+      }
+      return state;
+    }
+
+    if (event.t === "OPEN_MENU") {
+      if (state.phase !== "SetReady" && state.phase !== "Resting" && state.phase !== "Summary") return state;
+      state.menuReturn = state.phase;
+      return enter(state, "Menu", t);
+    }
+
+    if (event.t === "QUIT_ASK") {
+      if (state.phase !== "Menu" && state.phase !== "SetReady" && state.phase !== "Resting" && state.phase !== "Summary" && state.phase !== "Teach") return state;
+      if (state.phase !== "Menu") state.menuReturn = state.phase;
+      return enter(state, "QuitConfirm", t);
+    }
+
+    if (event.t === "QUIT_CONFIRM") {
+      if (state.phase !== "QuitConfirm") return state;
+      if (withinIdempotency(state, t)) return state;
+      return resetToHome(t);
     }
 
     if (event.t === "PRIMARY") {
@@ -893,7 +947,8 @@
     }
 
     if (event.t === "UNDO") {
-      if (state.phase !== "Resting") return state;
+      if (state.phase !== "Resting" && state.phase !== "Menu") return state;
+      if (state.phase === "Menu" && state.menuReturn !== "Resting") return state;
       if (withinIdempotency(state, t)) return state;
       var popped = state.logged.pop();
       if (!popped) return state;
@@ -901,14 +956,13 @@
       state.restEndsAt = null;
       state.setStartedAt = popped.completedAt;
       state.adjust = null;
+      state.menuReturn = null;
       return enter(state, "SetActive", t);
     }
 
     if (event.t === "FINISH") {
       if (state.phase !== "Summary") return state;
-      try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-      resetPlanTo(null);
-      return idleState(t);
+      return resetToHome(t);
     }
 
     if (event.t === "ADD_SET") {
@@ -935,7 +989,7 @@
         eyebrow: "SetPace",
         heading: "What today?",
         hero: "",
-        meta: "Pick a workout",
+        meta: "Middle pinch closes app",
         demo: null,
         progress: null,
         mood: "home",
@@ -960,7 +1014,47 @@
         mood: "home",
         actions: [
           { id: "equip_m", label: "Machines", event: { t: "SELECT_EQUIP", equip: "machine" } },
-          { id: "equip_f", label: "Free weights", event: { t: "SELECT_EQUIP", equip: "free" } }
+          { id: "equip_f", label: "Free weights", event: { t: "SELECT_EQUIP", equip: "free" } },
+          { id: "back", label: "Back", event: { t: "BACK" } }
+        ]
+      };
+    }
+
+    if (state.phase === "Menu") {
+      var fromRest = state.menuReturn === "Resting";
+      var fromSummary = state.menuReturn === "Summary";
+      var actions = [];
+      if (fromRest) {
+        actions.push({ id: "undo", label: "Undo set", event: { t: "UNDO" } });
+      } else if (!fromSummary) {
+        actions.push({ id: "howto", label: "How to?", event: { t: "HOW_TO" } });
+      }
+      actions.push({ id: "quit", label: "End workout", event: { t: "QUIT_ASK" } });
+      actions.push({ id: "back", label: "Back", event: { t: "BACK" } });
+      return {
+        eyebrow: "Menu",
+        heading: "Options",
+        hero: "",
+        meta: fromRest ? "Rest keeps counting" : "Quick actions",
+        demo: null,
+        progress: workoutProgress(state, plan),
+        mood: "home",
+        actions: actions
+      };
+    }
+
+    if (state.phase === "QuitConfirm") {
+      return {
+        eyebrow: "Leave workout?",
+        heading: "End now?",
+        hero: "",
+        meta: "Progress will be cleared",
+        demo: null,
+        progress: workoutProgress(state, plan),
+        mood: "home",
+        actions: [
+          { id: "primary", label: "Keep going", event: { t: "BACK" } },
+          { id: "quit", label: "End workout", event: { t: "QUIT_CONFIRM" } }
         ]
       };
     }
@@ -1023,7 +1117,7 @@
         progress: 1,
         mood: "summary",
         actions: [
-          { id: "primary", label: "Finish", event: { t: "FINISH" } },
+          { id: "primary", label: "Home", event: { t: "FINISH" } },
           { id: "add", label: "Add set", event: { t: "ADD_SET" } }
         ]
       };
@@ -1047,7 +1141,7 @@
         mood: "rest",
         actions: [
           { id: "primary", label: "Skip rest", event: { t: "PRIMARY" } },
-          { id: "undo", label: "Undo set", event: { t: "UNDO" } }
+          { id: "menu", label: "Menu", event: { t: "OPEN_MENU" } }
         ]
       };
     }
@@ -1081,7 +1175,7 @@
       mood: "ready",
       actions: [
         { id: "primary", label: "Start set", event: { t: "PRIMARY" } },
-        { id: "howto", label: "How to?", event: { t: "HOW_TO" } }
+        { id: "menu", label: "Menu", event: { t: "OPEN_MENU" } }
       ]
     };
   }
@@ -1815,7 +1909,8 @@
       clearTimeout(tickTimer);
       tickTimer = null;
     }
-    if (!state || state.phase !== "Resting" || state.restEndsAt == null) return;
+    if (!state || state.restEndsAt == null) return;
+    if (state.phase !== "Resting" && state.menuReturn !== "Resting") return;
     var t = now();
     var delay = Math.max(50, 1000 - (t % 1000));
     tickTimer = setTimeout(function () {
@@ -1871,6 +1966,11 @@
       if (state.phase === "Adjusting") lastFocusId = "minus";
       if (state.phase === "PlanSelect") lastFocusId = "plan_full";
       if (state.phase === "EquipSelect") lastFocusId = "equip_m";
+      if (state.phase === "Menu") {
+        lastFocusId = state.menuReturn === "Resting" ? "undo"
+          : (state.menuReturn === "Summary" ? "quit" : "howto");
+      }
+      if (state.phase === "QuitConfirm") lastFocusId = "primary";
       save();
     } else if (event.t === "ADJUST_DELTA" || event.t === "CONFIRM" || event.t === "TEACH_NEXT") {
       save();
