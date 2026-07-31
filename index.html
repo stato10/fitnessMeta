@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="mrbd-web-app-capable" content="yes">
@@ -8,10 +8,15 @@
 <style>
   :root {
     --bg: #000;
-    --fg: #e8ffff;
-    --accent: #00e5ff;
-    --muted: #7aa8b0;
-    --danger: #ff6b6b;
+    --fg: #ecfeff;
+    --accent: #5eead4;
+    --accent2: #67e8f9;
+    --muted: #94b8bc;
+    --card: #071a1c;
+    --card-hi: #0c2c30;
+    --line: #1a4a50;
+    --danger: #fb7185;
+    --good: #86efac;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -20,44 +25,73 @@
     overflow: hidden;
     background: var(--bg);
     color: var(--fg);
-    font-family: "Segoe UI", system-ui, sans-serif;
+    font-family: "Segoe UI", "Arial Hebrew", "Noto Sans Hebrew", system-ui, sans-serif;
   }
   #app {
     width: 600px;
     height: 600px;
     display: flex;
     flex-direction: column;
-    padding: 14px 20px 10px;
+    padding: 16px 22px 12px;
+    position: relative;
+  }
+  #eyebrow {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    min-height: 20px;
+    margin-bottom: 4px;
   }
   #heading {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--accent);
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--accent2);
     line-height: 1.15;
-    min-height: 34px;
-    letter-spacing: 0.02em;
+    min-height: 36px;
+  }
+  #progress {
+    display: none;
+    height: 6px;
+    background: #0a2226;
+    border-radius: 99px;
+    margin: 10px 0 6px;
+    overflow: hidden;
+  }
+  #progress.on { display: block; }
+  #progress > i {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.35s ease;
   }
   #demoWrap {
     display: none;
     width: 280px;
-    height: 220px;
-    margin: 4px auto 2px;
+    height: 210px;
+    margin: 6px auto 4px;
     flex-shrink: 0;
+    border-radius: 16px;
+    outline: 1px solid var(--line);
+    overflow: hidden;
   }
   #demoWrap.on { display: block; }
   #demo {
     width: 280px;
-    height: 220px;
+    height: 210px;
     display: block;
-    background: #000;
+    background: #030d0e;
   }
   #hero {
-    font-size: 64px;
+    font-size: 58px;
     font-weight: 800;
-    line-height: 1;
-    margin: 14px 0 6px;
-    min-height: 72px;
+    line-height: 1.05;
+    margin: 10px 0 6px;
+    min-height: 64px;
     color: var(--fg);
+    letter-spacing: -0.02em;
   }
   #hero.empty {
     min-height: 0;
@@ -65,56 +99,66 @@
     font-size: 0;
   }
   #app.teach #hero {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
-    min-height: 32px;
+    min-height: 30px;
     margin: 4px 0 2px;
     color: var(--fg);
   }
+  #app.rest #hero {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  #app.summary #heading { color: var(--good); }
+  #app.summary #hero { color: var(--good); font-size: 48px; }
   #meta {
     font-size: 18px;
     color: var(--muted);
     min-height: 24px;
     margin-bottom: 8px;
+    line-height: 1.3;
   }
   #actions {
     margin-top: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
   .btn {
     min-height: 88px;
     width: 100%;
-    border: 2px solid #133a40;
-    background: #061416;
+    border: 2px solid var(--line);
+    background: var(--card);
     color: var(--fg);
     font-size: 26px;
     font-weight: 700;
-    border-radius: 8px;
-    text-align: left;
-    padding: 0 22px;
+    border-radius: 16px;
+    text-align: right;
+    direction: rtl;
+    padding: 0 24px;
     outline: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
   .btn.primary {
     border-color: var(--accent);
-    background: #062228;
-    color: var(--accent);
+    background: var(--card-hi);
+    color: var(--accent2);
   }
   .btn:focus {
-    border-color: var(--accent);
-    box-shadow: inset 0 0 0 3px var(--accent);
-    background: #0a3038;
+    border-color: var(--accent2);
+    box-shadow: inset 0 0 0 3px rgba(94, 234, 212, 0.55);
+    background: #10383e;
   }
   #flash {
     position: fixed;
     inset: 0;
-    background: #fff;
+    background: radial-gradient(circle at 50% 40%, #a5f3fc 0%, #22d3ee 45%, #000 100%);
     opacity: 0;
     pointer-events: none;
     z-index: 9999;
+    transition: opacity 0.12s ease;
   }
-  #flash.on { opacity: 1; }
+  #flash.on { opacity: 0.92; }
   #error {
     display: none;
     position: fixed;
@@ -134,15 +178,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #111;
+      background: #0b1220;
     }
-    #app { outline: 1px solid #333; }
+    #app { outline: 1px solid #1e293b; border-radius: 8px; }
     .desktop-hint {
       display: block;
       position: fixed;
       bottom: 12px;
       left: 12px;
-      color: #666;
+      color: #64748b;
       font-size: 13px;
     }
   }
@@ -151,10 +195,12 @@
 <body>
 <div id="flash" aria-hidden="true"></div>
 <pre id="error"></pre>
-<div class="desktop-hint">Desktop: arrows + Enter. Glasses: Neural Band / captouch.</div>
+<div class="desktop-hint">Desktop: arrows + Enter · Glasses: Neural Band</div>
 <div id="app">
+  <div id="eyebrow"></div>
   <div id="heading"></div>
-  <div id="demoWrap"><canvas id="demo" width="280" height="220"></canvas></div>
+  <div id="progress"><i id="progressFill"></i></div>
+  <div id="demoWrap"><canvas id="demo" width="280" height="210"></canvas></div>
   <div id="hero"></div>
   <div id="meta"></div>
   <div id="actions"></div>
@@ -337,7 +383,7 @@
   var PLANS = {
     fullbody: {
       id: "fullbody",
-      name: "Full body",
+      name: "גוף מלא",
       exercises: {
         legpress: EX.legpress,
         chestpress: EX.chestpress,
@@ -356,7 +402,7 @@
     },
     upper: {
       id: "upper",
-      name: "Upper push",
+      name: "פלג עליון",
       exercises: {
         chestpress: EX.chestpress,
         shpress: EX.shpress,
@@ -371,7 +417,7 @@
     },
     legs: {
       id: "legs",
-      name: "Legs",
+      name: "רגליים",
       exercises: {
         legpress: EX.legpress,
         legcurl: EX.legcurl,
@@ -430,9 +476,9 @@
 
   function heroForSet(set, reps, ex) {
     if (ex && ex.unit === "time") return formatClock(reps);
-    if (ex && ex.unit === "bodyweight") return "x " + reps;
+    if (ex && ex.unit === "bodyweight") return reps + " חזרות";
     var w = formatWeight(set.targetWeightKg);
-    return w ? w + " x " + reps : "x " + reps;
+    return w ? w + " ק״ג · " + reps : reps + " חזרות";
   }
 
   function needsTeach(state, plan, cursor) {
@@ -691,20 +737,30 @@
   }
 
   // --- Render ---
+  function workoutProgress(state, plan) {
+    if (!state || !plan || !plan.sets.length) return 0;
+    return Math.min(1, state.logged.length / plan.sets.length);
+  }
+
   function render(state, t, plan) {
     if (!state || state.phase === "PlanSelect" || state.phase === "Idle") {
       return {
-        heading: "What today?",
+        eyebrow: "SetPace",
+        heading: "מה נאמן היום?",
         hero: "",
-        meta: "Pick a workout",
+        meta: "בחר · ותתחיל",
         demo: null,
+        progress: null,
+        mood: "home",
         actions: [
-          { id: "plan_full", label: "Full body", event: { t: "SELECT_PLAN", planId: "fullbody" } },
-          { id: "plan_upper", label: "Upper push", event: { t: "SELECT_PLAN", planId: "upper" } },
-          { id: "plan_legs", label: "Legs", event: { t: "SELECT_PLAN", planId: "legs" } }
+          { id: "plan_full", label: "גוף מלא", event: { t: "SELECT_PLAN", planId: "fullbody" } },
+          { id: "plan_upper", label: "פלג עליון", event: { t: "SELECT_PLAN", planId: "upper" } },
+          { id: "plan_legs", label: "רגליים", event: { t: "SELECT_PLAN", planId: "legs" } }
         ]
       };
     }
+
+    var pct = workoutProgress(state, plan);
 
     if (state.phase === "Teach") {
       var tset = plan.sets[state.cursor];
@@ -713,13 +769,16 @@
       var idx = Math.min(state.teachStep, Math.max(0, steps.length - 1));
       var last = idx >= steps.length - 1;
       return {
+        eyebrow: "למדים · " + (idx + 1) + "/" + steps.length,
         heading: tex.name,
         hero: steps[idx] || "",
-        meta: "Step " + (idx + 1) + "/" + steps.length,
+        meta: tex.cue || "עקוב אחרי התנועה",
         demo: tex.demo || tex.id,
+        progress: pct,
+        mood: "teach",
         actions: [
-          { id: "primary", label: last ? "Got it" : "Next", event: { t: "TEACH_NEXT" } },
-          { id: "skip", label: "Skip", event: { t: "TEACH_SKIP" } }
+          { id: "primary", label: last ? "יאללה, מוכן" : "הבא", event: { t: "TEACH_NEXT" } },
+          { id: "skip", label: "אני כבר יודע", event: { t: "TEACH_SKIP" } }
         ]
       };
     }
@@ -728,14 +787,17 @@
       var aset = plan.sets[state.cursor];
       var aex = exerciseOf(plan, aset);
       return {
+        eyebrow: "כוונון",
         heading: aex.name,
-        hero: String(state.adjust.reps) + (aex.unit === "time" ? " sec" : " reps"),
-        meta: "Adjust reps",
+        hero: String(state.adjust.reps) + (aex.unit === "time" ? " שנ׳" : " חזרות"),
+        meta: "שנה ואשר",
         demo: null,
+        progress: pct,
+        mood: "ready",
         actions: [
           { id: "minus", label: "−1", event: { t: "ADJUST_DELTA", delta: -1 } },
           { id: "plus", label: "+1", event: { t: "ADJUST_DELTA", delta: 1 } },
-          { id: "done", label: "Done", event: { t: "CONFIRM" } }
+          { id: "done", label: "שמור", event: { t: "CONFIRM" } }
         ]
       };
     }
@@ -746,15 +808,18 @@
         var L = state.logged[i];
         if (L.actualWeightKg != null) volume += L.actualWeightKg * L.actualReps;
       }
-      var mins = Math.round((t - state.startedAt) / 60000);
+      var mins = Math.max(1, Math.round((t - state.startedAt) / 60000));
       return {
-        heading: "Done",
-        hero: String(state.logged.length) + " sets",
-        meta: mins + " min · " + Math.round(volume) + " kg",
+        eyebrow: "סיימת · כל הכבוד",
+        heading: "אימון הושלם",
+        hero: state.logged.length + " סטים",
+        meta: mins + " דק׳ · " + Math.round(volume) + " ק״ג",
         demo: null,
+        progress: 1,
+        mood: "summary",
         actions: [
-          { id: "primary", label: "Finish", event: { t: "FINISH" } },
-          { id: "add", label: "Add set", event: { t: "ADD_SET" } }
+          { id: "primary", label: "סיום", event: { t: "FINISH" } },
+          { id: "add", label: "סט נוסף", event: { t: "ADD_SET" } }
         ]
       };
     }
@@ -764,14 +829,20 @@
       var next = plan.sets[state.cursor];
       var nex = exerciseOf(plan, next);
       var nprog = setProgress(plan, state.cursor);
+      var restMeta = remain <= 10
+        ? "מתכוננים · " + nex.name
+        : "הבא: " + nex.name + " · " + nprog.current + "/" + nprog.total;
       return {
-        heading: "Rest",
+        eyebrow: remain <= 10 ? "כמעט שם" : "הפסקה · תנשום",
+        heading: nex.name,
         hero: formatClock(remain),
-        meta: "Next: " + nex.name + " " + nprog.current + "/" + nprog.total,
+        meta: restMeta,
         demo: null,
+        progress: pct,
+        mood: "rest",
         actions: [
-          { id: "primary", label: "Skip rest", event: { t: "PRIMARY" } },
-          { id: "undo", label: "Undo set", event: { t: "UNDO" } }
+          { id: "primary", label: "דלג מנוחה", event: { t: "PRIMARY" } },
+          { id: "undo", label: "בטל סט", event: { t: "UNDO" } }
         ]
       };
     }
@@ -781,28 +852,31 @@
     var prog = setProgress(plan, state.cursor);
     var reps = state.adjust ? state.adjust.reps : set.targetReps;
     var hero = heroForSet(set, reps, ex);
-    var metaLine = (ex.cue || "") + " · " + prog.current + "/" + prog.total;
-    if (metaLine.length > 28) metaLine = (ex.cue || "").slice(0, 18) + " · " + prog.current + "/" + prog.total;
 
     if (state.phase === "SetActive") {
       return {
+        eyebrow: "סט " + prog.current + "/" + prog.total + " · בעבודה",
         heading: ex.name,
         hero: hero,
-        meta: "Set " + prog.current + "/" + prog.total + " · lifting",
+        meta: "כשסיימת — סמן",
         demo: null,
-        actions: [{ id: "primary", label: "Done", event: { t: "PRIMARY" } }]
+        progress: pct,
+        mood: "active",
+        actions: [{ id: "primary", label: "סיימתי", event: { t: "PRIMARY" } }]
       };
     }
 
-    // SetReady: Start + How to (Adjust omitted — 88px budget with cue)
     return {
+      eyebrow: "סט " + prog.current + "/" + prog.total,
       heading: ex.name,
       hero: hero,
-      meta: metaLine,
+      meta: ex.cue || "מוכן כשאתה מוכן",
       demo: null,
+      progress: pct,
+      mood: "ready",
       actions: [
-        { id: "primary", label: "Start set", event: { t: "PRIMARY" } },
-        { id: "howto", label: "How to", event: { t: "HOW_TO" } }
+        { id: "primary", label: "התחל סט", event: { t: "PRIMARY" } },
+        { id: "howto", label: "איך עושים?", event: { t: "HOW_TO" } }
       ]
     };
   }
@@ -1122,26 +1196,18 @@
   // Bodyweight squat: hips sit back, then stand
   function drawBwSquat(ctx, p) {
     var a = wave(p);
-    // a=0 stand, a=1 deep squat
     var hipY = 100 + a * 35;
-    var kneeBend = a * 0.9;
     strokeMute(ctx, 2);
     line(ctx, 50, 200, 230, 200);
     strokeCyan(ctx, 4);
     var headY = 45 + a * 25;
     head(ctx, 140, headY, 11);
-    line(ctx, 140, headY + 11, 140, hipY); // torso more upright
-    var kx = 140 + 8;
+    line(ctx, 140, headY + 11, 140 - a * 12, hipY);
     var ky = hipY + 20 + a * 10;
-    line(ctx, 140, hipY, 110, ky);
-    line(ctx, 140, hipY, 170, ky);
+    line(ctx, 140 - a * 12, hipY, 110, ky);
+    line(ctx, 140 - a * 12, hipY, 170, ky);
     line(ctx, 110, ky, 105, 195);
     line(ctx, 170, ky, 175, 195);
-    // slight torso lean
-    if (a > 0.2) {
-      strokeCyan(ctx, 3);
-      line(ctx, 140, headY + 11, 140 - a * 12, hipY);
-    }
     arrow(ctx, 210, 80 + a * 40, 210, 130);
   }
 
@@ -1203,36 +1269,24 @@
     try {
       var ctx = ensureAudio();
       if (!ctx) return;
-      var o = ctx.createOscillator();
-      var g = ctx.createGain();
-      o.type = "square";
-      o.frequency.value = 880;
-      g.gain.value = 0.0001;
-      o.connect(g);
-      g.connect(ctx.destination);
       var t0 = ctx.currentTime;
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.2, t0 + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
-      o.start(t0);
-      o.stop(t0 + 0.4);
-      setTimeout(function () {
-        try {
-          var o2 = ctx.createOscillator();
-          var g2 = ctx.createGain();
-          o2.type = "square";
-          o2.frequency.value = 1175;
-          g2.gain.value = 0.0001;
-          o2.connect(g2);
-          g2.connect(ctx.destination);
-          var t1 = ctx.currentTime;
-          g2.gain.setValueAtTime(0.0001, t1);
-          g2.gain.exponentialRampToValueAtTime(0.18, t1 + 0.02);
-          g2.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.28);
-          o2.start(t1);
-          o2.stop(t1 + 0.32);
-        } catch (e2) {}
-      }, 180);
+      function chime(freq, at, dur, vol) {
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(vol, at + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+        o.start(at);
+        o.stop(at + dur + 0.02);
+      }
+      chime(523.25, t0, 0.28, 0.16);
+      chime(659.25, t0 + 0.14, 0.32, 0.14);
+      chime(783.99, t0 + 0.28, 0.45, 0.12);
     } catch (e) {}
   }
 
@@ -1244,8 +1298,8 @@
       setTimeout(function () {
         el.classList.remove("on");
         n++;
-        if (n < 3) setTimeout(beat, 120);
-      }, 180);
+        if (n < 2) setTimeout(beat, 160);
+      }, 220);
     }
     beat();
   }
@@ -1257,27 +1311,42 @@
 
   // --- DOM commit ---
   var appEl = document.getElementById("app");
+  var eyebrowEl = document.getElementById("eyebrow");
   var headingEl = document.getElementById("heading");
   var heroEl = document.getElementById("hero");
   var metaEl = document.getElementById("meta");
   var demoWrap = document.getElementById("demoWrap");
+  var progressEl = document.getElementById("progress");
+  var progressFill = document.getElementById("progressFill");
   var actionsEl = document.getElementById("actions");
   var lastFocusId = "primary";
   var actionHandlers = {};
+  var moodClasses = ["teach", "rest", "summary", "active", "ready", "home"];
 
   function commit(frame) {
+    eyebrowEl.textContent = frame.eyebrow || "";
     headingEl.textContent = frame.heading || "";
     heroEl.textContent = frame.hero || "";
     if (!frame.hero) heroEl.classList.add("empty");
     else heroEl.classList.remove("empty");
     metaEl.textContent = frame.meta || "";
 
+    for (var m = 0; m < moodClasses.length; m++) {
+      appEl.classList.remove(moodClasses[m]);
+    }
+    if (frame.mood) appEl.classList.add(frame.mood);
+
+    if (frame.progress == null) {
+      progressEl.classList.remove("on");
+    } else {
+      progressEl.classList.add("on");
+      progressFill.style.width = Math.round(frame.progress * 100) + "%";
+    }
+
     if (frame.demo) {
-      appEl.classList.add("teach");
       demoWrap.classList.add("on");
       startDemo(frame.demo);
     } else {
-      appEl.classList.remove("teach");
       demoWrap.classList.remove("on");
       stopDemo();
     }
