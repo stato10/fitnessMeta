@@ -39,15 +39,15 @@
   }
   #demoWrap {
     display: none;
-    width: 240px;
-    height: 200px;
-    margin: 8px auto 4px;
+    width: 280px;
+    height: 220px;
+    margin: 4px auto 2px;
     flex-shrink: 0;
   }
   #demoWrap.on { display: block; }
   #demo {
-    width: 240px;
-    height: 200px;
+    width: 280px;
+    height: 220px;
     display: block;
     background: #000;
   }
@@ -154,7 +154,7 @@
 <div class="desktop-hint">Desktop: arrows + Enter. Glasses: Neural Band / captouch.</div>
 <div id="app">
   <div id="heading"></div>
-  <div id="demoWrap"><canvas id="demo" width="240" height="200"></canvas></div>
+  <div id="demoWrap"><canvas id="demo" width="280" height="220"></canvas></div>
   <div id="hero"></div>
   <div id="meta"></div>
   <div id="actions"></div>
@@ -178,7 +178,7 @@
     legpress: {
       id: "legpress", name: "Leg press", unit: "kg",
       cue: "Machine · adjust seat",
-      demo: "press",
+      demo: "legpress",
       steps: [
         "Sit · back flat",
         "Feet mid platform",
@@ -190,7 +190,7 @@
     chestpress: {
       id: "chestpress", name: "Chest press", unit: "kg",
       cue: "Machine · seat height",
-      demo: "press",
+      demo: "chestpress",
       steps: [
         "Sit · back flat",
         "Handles at chest",
@@ -202,7 +202,7 @@
     latpulldown: {
       id: "latpulldown", name: "Lat pulldown", unit: "kg",
       cue: "Cable · high bar",
-      demo: "pulldown",
+      demo: "latpulldown",
       steps: [
         "Sit · pin thighs",
         "Wide grip on bar",
@@ -214,7 +214,7 @@
     shpress: {
       id: "shpress", name: "Shoulder press", unit: "kg",
       cue: "Machine · seat up",
-      demo: "press",
+      demo: "shpress",
       steps: [
         "Sit · back supported",
         "Handles at shoulders",
@@ -226,7 +226,7 @@
     cablecurl: {
       id: "cablecurl", name: "Cable curl", unit: "kg",
       cue: "Cable · low pulley",
-      demo: "curl",
+      demo: "cablecurl",
       steps: [
         "Stand · elbows in",
         "Grip bar underhand",
@@ -250,7 +250,7 @@
     incline: {
       id: "incline", name: "Incline press", unit: "kg",
       cue: "Machine · slight up",
-      demo: "press",
+      demo: "incline",
       steps: [
         "Sit · back on pad",
         "Handles at chest",
@@ -262,7 +262,7 @@
     tripush: {
       id: "tripush", name: "Tricep pushdown", unit: "kg",
       cue: "Cable · high pulley",
-      demo: "pulldown",
+      demo: "tripush",
       steps: [
         "Stand · elbows pinned",
         "Grip bar / rope",
@@ -274,7 +274,7 @@
     legcurl: {
       id: "legcurl", name: "Leg curl", unit: "kg",
       cue: "Machine · pad calves",
-      demo: "curl",
+      demo: "legcurl",
       steps: [
         "Lie or sit set",
         "Pad on lower legs",
@@ -286,7 +286,7 @@
     legext: {
       id: "legext", name: "Leg extension", unit: "kg",
       cue: "Machine · pad shins",
-      demo: "press",
+      demo: "legext",
       steps: [
         "Sit · back flat",
         "Pad on lower shins",
@@ -298,7 +298,7 @@
     calfraise: {
       id: "calfraise", name: "Calf raise", unit: "kg",
       cue: "Machine · toes edge",
-      demo: "raise",
+      demo: "calfraise",
       steps: [
         "Toes on platform",
         "Heels hang free",
@@ -310,7 +310,7 @@
     bwsquat: {
       id: "bwsquat", name: "BW squat", unit: "bodyweight",
       cue: "Floor · own weight",
-      demo: "press",
+      demo: "bwsquat",
       steps: [
         "Feet shoulder wide",
         "Chest up · brace",
@@ -716,7 +716,7 @@
         heading: tex.name,
         hero: steps[idx] || "",
         meta: "Step " + (idx + 1) + "/" + steps.length,
-        demo: tex.demo || "press",
+        demo: tex.demo || tex.id,
         actions: [
           { id: "primary", label: last ? "Got it" : "Next", event: { t: "TEACH_NEXT" } },
           { id: "skip", label: "Skip", event: { t: "TEACH_SKIP" } }
@@ -807,7 +807,7 @@
     };
   }
 
-  // --- Canvas demos ---
+  // --- Canvas demos (one clear motion per exercise) ---
   var demoCanvas = document.getElementById("demo");
   var demoCtx = demoCanvas.getContext("2d");
   var demoRaf = null;
@@ -822,12 +822,26 @@
     demoKind = null;
   }
 
-  function strokeFigure(ctx) {
+  function strokeCyan(ctx, w) {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = "#00e5ff";
     ctx.fillStyle = "#00e5ff";
-    ctx.lineWidth = 4;
+    ctx.lineWidth = w || 4;
+  }
+
+  function strokeMute(ctx, w) {
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#5f8a92";
+    ctx.lineWidth = w || 3;
+  }
+
+  function strokeHi(ctx, w) {
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#e8ffff";
+    ctx.lineWidth = w || 3;
   }
 
   function head(ctx, x, y, r) {
@@ -836,125 +850,315 @@
     ctx.stroke();
   }
 
-  function limb(ctx, x1, y1, x2, y2) {
+  function line(ctx, x1, y1, x2, y2) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
   }
 
-  function ease(p) {
+  // 0→1→0 smooth loop
+  function wave(p) {
     return 0.5 - 0.5 * Math.cos(Math.PI * 2 * p);
   }
 
-  function drawPress(ctx, p) {
-    var a = ease(p);
-    var push = a * 36;
-    strokeFigure(ctx);
-    // seat
-    ctx.strokeStyle = "#7aa8b0";
-    ctx.lineWidth = 3;
-    limb(ctx, 40, 155, 120, 155);
-    limb(ctx, 55, 155, 55, 175);
-    limb(ctx, 105, 155, 105, 175);
-    strokeFigure(ctx);
-    head(ctx, 78, 70, 12);
-    limb(ctx, 78, 82, 78, 120); // torso
-    limb(ctx, 78, 120, 55, 155); // thigh
-    limb(ctx, 78, 120, 100, 155);
-    // arms push forward
-    limb(ctx, 78, 95, 110 + push, 90);
-    limb(ctx, 78, 95, 110 + push, 105);
-    // handles / pad
-    ctx.strokeStyle = "#e8ffff";
-    ctx.lineWidth = 3;
-    limb(ctx, 110 + push, 82, 110 + push, 112);
+  // Arrow showing motion direction
+  function arrow(ctx, x1, y1, x2, y2) {
+    strokeHi(ctx, 2);
+    line(ctx, x1, y1, x2, y2);
+    var ang = Math.atan2(y2 - y1, x2 - x1);
+    var s = 8;
+    line(ctx, x2, y2, x2 - s * Math.cos(ang - 0.4), y2 - s * Math.sin(ang - 0.4));
+    line(ctx, x2, y2, x2 - s * Math.cos(ang + 0.4), y2 - s * Math.sin(ang + 0.4));
   }
 
-  function drawPulldown(ctx, p) {
-    var a = ease(p);
-    var down = a * 40;
-    strokeFigure(ctx);
-    ctx.strokeStyle = "#7aa8b0";
-    ctx.lineWidth = 3;
-    limb(ctx, 50, 170, 190, 170); // seat/base
-    strokeFigure(ctx);
-    head(ctx, 120, 95, 12);
-    limb(ctx, 120, 107, 120, 145);
-    limb(ctx, 120, 145, 95, 170);
-    limb(ctx, 120, 145, 145, 170);
-    // arms from high bar
-    var handY = 55 + down;
-    limb(ctx, 120, 120, 85, handY);
-    limb(ctx, 120, 120, 155, handY);
-    ctx.strokeStyle = "#e8ffff";
-    ctx.lineWidth = 3;
-    limb(ctx, 70, handY, 170, handY);
-    // cable
-    ctx.strokeStyle = "#7aa8b0";
-    limb(ctx, 120, 20, 120, handY);
+  // --- Per-exercise drawings ---
+
+  // Seated, sled/platform moves away with feet (horizontal press)
+  function drawLegPress(ctx, p) {
+    var a = wave(p);
+    var sled = 70 + a * 55;
+    strokeMute(ctx, 3);
+    line(ctx, 20, 40, 20, 200); // back frame
+    line(ctx, 20, 130, 250, 190); // rail
+    line(ctx, 20, 150, 100, 200);
+    strokeCyan(ctx, 4);
+    // reclined body
+    head(ctx, 55, 85, 11);
+    line(ctx, 55, 96, 90, 130); // torso on pad
+    line(ctx, 90, 130, sled, 155); // thighs to platform
+    line(ctx, 90, 130, sled - 8, 168);
+    strokeHi(ctx, 4);
+    line(ctx, sled, 140, sled, 185); // foot plate
+    line(ctx, sled - 14, 162, sled + 6, 162);
+    arrow(ctx, sled + 10, 120, sled + 40, 120);
   }
 
-  function drawCurl(ctx, p) {
-    var a = ease(p);
-    var bend = a * 0.9;
-    strokeFigure(ctx);
-    head(ctx, 90, 50, 12);
-    limb(ctx, 90, 62, 90, 120);
-    limb(ctx, 90, 120, 70, 165);
-    limb(ctx, 90, 120, 115, 165);
-    // upper arm fixed, forearm curls
-    var elbowX = 115, elbowY = 95;
-    limb(ctx, 90, 80, elbowX, elbowY);
-    var handX = elbowX + Math.cos(-0.2 - bend * 1.4) * 40;
-    var handY = elbowY + Math.sin(-0.2 - bend * 1.4) * 40;
-    limb(ctx, elbowX, elbowY, handX, handY);
-    ctx.strokeStyle = "#e8ffff";
-    ctx.lineWidth = 3;
-    limb(ctx, handX - 8, handY, handX + 8, handY);
+  // Seated upright, handles push FORWARD from chest
+  function drawChestPress(ctx, p) {
+    var a = wave(p);
+    var push = a * 42;
+    strokeMute(ctx, 3);
+    line(ctx, 40, 50, 40, 200);
+    line(ctx, 40, 170, 160, 170); // seat
+    line(ctx, 40, 70, 40, 150); // back pad
+    strokeCyan(ctx, 4);
+    head(ctx, 70, 70, 11);
+    line(ctx, 70, 81, 70, 130);
+    line(ctx, 70, 130, 55, 170);
+    line(ctx, 70, 130, 95, 170);
+    line(ctx, 70, 100, 115 + push, 95);
+    line(ctx, 70, 105, 115 + push, 110);
+    strokeHi(ctx, 4);
+    line(ctx, 115 + push, 88, 115 + push, 118);
+    arrow(ctx, 130 + push, 100, 165 + push * 0.3, 100);
   }
 
-  function drawRaise(ctx, p) {
-    var a = ease(p);
-    var lift = a * 22;
-    strokeFigure(ctx);
-    head(ctx, 120, 40, 12);
-    limb(ctx, 120, 52, 120, 110);
-    // legs
-    limb(ctx, 120, 110, 100, 150 - lift);
-    limb(ctx, 120, 110, 140, 150 - lift);
-    // feet / platform
-    ctx.strokeStyle = "#7aa8b0";
-    ctx.lineWidth = 3;
-    limb(ctx, 70, 165, 170, 165);
-    strokeFigure(ctx);
-    limb(ctx, 95, 150 - lift, 105, 150 - lift);
-    limb(ctx, 135, 150 - lift, 145, 150 - lift);
-    // heels indicator
-    ctx.strokeStyle = "#e8ffff";
-    ctx.lineWidth = 3;
-    limb(ctx, 100, 150 - lift, 100, 162 - lift * 0.3);
-    limb(ctx, 140, 150 - lift, 140, 162 - lift * 0.3);
+  // Seated under tower, wide bar pulls DOWN to chest
+  function drawLatPulldown(ctx, p) {
+    var a = wave(p);
+    var barY = 45 + a * 55;
+    strokeMute(ctx, 3);
+    line(ctx, 140, 15, 140, 45); // cable tower
+    line(ctx, 60, 200, 220, 200);
+    line(ctx, 90, 175, 190, 175); // seat
+    line(ctx, 100, 175, 100, 155); // thigh pad posts
+    line(ctx, 180, 175, 180, 155);
+    strokeCyan(ctx, 4);
+    head(ctx, 140, 110, 11);
+    line(ctx, 140, 121, 140, 160);
+    line(ctx, 140, 160, 115, 175);
+    line(ctx, 140, 160, 165, 175);
+    line(ctx, 140, 130, 95, barY);
+    line(ctx, 140, 130, 185, barY);
+    strokeHi(ctx, 4);
+    line(ctx, 85, barY, 195, barY);
+    strokeMute(ctx, 2);
+    line(ctx, 140, 15, 140, barY);
+    arrow(ctx, 210, 50, 210, 95);
   }
 
+  // Seated, handles press UP overhead
+  function drawShoulderPress(ctx, p) {
+    var a = wave(p);
+    var up = a * 48;
+    strokeMute(ctx, 3);
+    line(ctx, 50, 40, 50, 200);
+    line(ctx, 50, 175, 170, 175);
+    strokeCyan(ctx, 4);
+    head(ctx, 95, 95, 11);
+    line(ctx, 95, 106, 95, 145);
+    line(ctx, 95, 145, 75, 175);
+    line(ctx, 95, 145, 120, 175);
+    // arms press upward
+    var handY = 85 - up;
+    line(ctx, 95, 115, 70, handY);
+    line(ctx, 95, 115, 120, handY);
+    strokeHi(ctx, 4);
+    line(ctx, 62, handY, 78, handY);
+    line(ctx, 112, handY, 128, handY);
+    arrow(ctx, 150, 90, 150, 50);
+  }
+
+  // Standing at low cable, curl bar up
+  function drawCableCurl(ctx, p) {
+    var a = wave(p);
+    var bend = a * 1.2;
+    strokeMute(ctx, 3);
+    line(ctx, 40, 20, 40, 200); // stack
+    line(ctx, 40, 195, 90, 195); // low pulley
+    strokeCyan(ctx, 4);
+    head(ctx, 130, 45, 11);
+    line(ctx, 130, 56, 130, 120);
+    line(ctx, 130, 120, 110, 175);
+    line(ctx, 130, 120, 150, 175);
+    var ex = 150, ey = 95;
+    line(ctx, 130, 75, ex, ey);
+    var hx = ex + Math.cos(-0.3 - bend) * 42;
+    var hy = ey + Math.sin(-0.3 - bend) * 42;
+    line(ctx, ex, ey, hx, hy);
+    strokeHi(ctx, 3);
+    line(ctx, hx - 10, hy, hx + 10, hy);
+    strokeMute(ctx, 2);
+    line(ctx, 90, 195, hx, hy);
+    arrow(ctx, 185, 130, 185, 85);
+  }
+
+  // Forearm plank hold with breath pulse
   function drawPlank(ctx, p) {
-    var pulse = 0.85 + 0.15 * Math.sin(p * Math.PI * 2);
-    strokeFigure(ctx);
+    var pulse = 0.8 + 0.2 * Math.sin(p * Math.PI * 2);
+    strokeMute(ctx, 3);
+    line(ctx, 30, 170, 250, 170);
+    strokeCyan(ctx, 4);
     ctx.globalAlpha = pulse;
-    // body line
-    head(ctx, 55, 95, 10);
-    limb(ctx, 65, 100, 170, 100);
-    // arms
-    limb(ctx, 75, 100, 70, 130);
-    limb(ctx, 75, 100, 85, 130);
-    // legs
-    limb(ctx, 170, 100, 195, 130);
-    limb(ctx, 170, 100, 185, 130);
-    ctx.strokeStyle = "#7aa8b0";
-    ctx.lineWidth = 3;
+    head(ctx, 55, 105, 10);
+    line(ctx, 65, 112, 190, 112);
+    line(ctx, 75, 112, 70, 155);
+    line(ctx, 85, 112, 90, 155);
+    line(ctx, 190, 112, 215, 155);
+    line(ctx, 190, 112, 200, 155);
     ctx.globalAlpha = 1;
-    limb(ctx, 40, 135, 210, 135);
+    strokeHi(ctx, 2);
+    // "hold" ticks
+    line(ctx, 120, 90, 120, 100);
+    line(ctx, 140, 88, 140, 100);
+    line(ctx, 160, 90, 160, 100);
   }
+
+  // Incline: back pad angled, press up-and-out
+  function drawIncline(ctx, p) {
+    var a = wave(p);
+    var push = a * 38;
+    strokeMute(ctx, 3);
+    line(ctx, 35, 60, 80, 170); // incline pad
+    line(ctx, 80, 170, 180, 170);
+    strokeCyan(ctx, 4);
+    head(ctx, 70, 75, 11);
+    line(ctx, 75, 88, 95, 135); // angled torso
+    line(ctx, 95, 135, 80, 170);
+    line(ctx, 95, 135, 120, 170);
+    var hx = 130 + push * 0.7;
+    var hy = 100 - push * 0.55;
+    line(ctx, 95, 110, hx, hy);
+    line(ctx, 100, 115, hx + 8, hy + 12);
+    strokeHi(ctx, 4);
+    line(ctx, hx - 4, hy - 6, hx + 12, hy + 16);
+    arrow(ctx, 165, 95, 200, 70);
+  }
+
+  // Standing, elbows pinned, push cable DOWN to hips (not a pulldown!)
+  function drawTriPush(ctx, p) {
+    var a = wave(p);
+    var down = a * 50;
+    strokeMute(ctx, 3);
+    line(ctx, 50, 15, 50, 200);
+    line(ctx, 50, 30, 140, 30); // high pulley arm
+    strokeCyan(ctx, 4);
+    head(ctx, 140, 55, 11);
+    line(ctx, 140, 66, 140, 130);
+    line(ctx, 140, 130, 120, 180);
+    line(ctx, 140, 130, 160, 180);
+    // upper arms fixed at sides, forearms push down
+    var handY = 95 + down;
+    line(ctx, 140, 85, 125, 100);
+    line(ctx, 140, 85, 155, 100);
+    line(ctx, 125, 100, 125, handY);
+    line(ctx, 155, 100, 155, handY);
+    strokeHi(ctx, 4);
+    line(ctx, 115, handY, 165, handY);
+    strokeMute(ctx, 2);
+    line(ctx, 140, 30, 140, handY);
+    arrow(ctx, 185, 110, 185, 155);
+  }
+
+  // Lying face-down (or seated side view): heels curl toward glutes
+  function drawLegCurl(ctx, p) {
+    var a = wave(p);
+    var curl = a * 1.1;
+    strokeMute(ctx, 3);
+    line(ctx, 40, 100, 220, 100); // bench
+    line(ctx, 50, 100, 50, 180);
+    line(ctx, 210, 100, 210, 180);
+    strokeCyan(ctx, 4);
+    // torso prone
+    head(ctx, 55, 85, 10);
+    line(ctx, 65, 90, 140, 90);
+    // hip fixed, lower legs curl up
+    var kneeX = 155, kneeY = 100;
+    line(ctx, 140, 90, kneeX, kneeY);
+    var fx = kneeX + Math.cos(0.15 + curl) * 55;
+    var fy = kneeY - Math.sin(0.15 + curl) * 55;
+    line(ctx, kneeX, kneeY, fx, fy);
+    strokeHi(ctx, 4);
+    // ankle pad
+    line(ctx, fx - 8, fy - 6, fx + 8, fy + 6);
+    arrow(ctx, 210, 140, 195, 100);
+  }
+
+  // Seated, shin pad extends forward/up as knees straighten
+  function drawLegExt(ctx, p) {
+    var a = wave(p);
+    var ext = a * 1.15;
+    strokeMute(ctx, 3);
+    line(ctx, 50, 50, 50, 195);
+    line(ctx, 50, 160, 140, 160); // seat
+    strokeCyan(ctx, 4);
+    head(ctx, 85, 70, 11);
+    line(ctx, 85, 81, 85, 130);
+    line(ctx, 85, 130, 70, 160);
+    // thigh on seat, shin swings out
+    var kneeX = 130, kneeY = 155;
+    line(ctx, 85, 130, kneeX, kneeY);
+    var sx = kneeX + Math.cos(-0.2 + ext * 1.3) * 55;
+    var sy = kneeY + Math.sin(-0.2 + ext * 1.3) * 55;
+    line(ctx, kneeX, kneeY, sx, sy);
+    strokeHi(ctx, 4);
+    line(ctx, sx - 10, sy - 4, sx + 10, sy + 4); // shin pad
+    arrow(ctx, 200, 170, 220, 130);
+  }
+
+  // Standing on edge, heels rise (calf)
+  function drawCalfRaise(ctx, p) {
+    var a = wave(p);
+    var lift = a * 28;
+    strokeMute(ctx, 3);
+    line(ctx, 60, 175, 220, 175); // platform edge
+    line(ctx, 60, 175, 60, 200);
+    strokeCyan(ctx, 4);
+    head(ctx, 140, 40, 11);
+    line(ctx, 140, 51, 140, 110);
+    // legs shorten visually as heels rise
+    line(ctx, 140, 110, 115, 160 - lift);
+    line(ctx, 140, 110, 165, 160 - lift);
+    strokeHi(ctx, 4);
+    // balls of feet on edge, heels up
+    line(ctx, 108, 165 - lift, 122, 165 - lift);
+    line(ctx, 158, 165 - lift, 172, 165 - lift);
+    line(ctx, 115, 165 - lift, 115, 175 - lift * 0.2);
+    line(ctx, 165, 165 - lift, 165, 175 - lift * 0.2);
+    arrow(ctx, 200, 150, 200, 115);
+  }
+
+  // Bodyweight squat: hips sit back, then stand
+  function drawBwSquat(ctx, p) {
+    var a = wave(p);
+    // a=0 stand, a=1 deep squat
+    var hipY = 100 + a * 35;
+    var kneeBend = a * 0.9;
+    strokeMute(ctx, 2);
+    line(ctx, 50, 200, 230, 200);
+    strokeCyan(ctx, 4);
+    var headY = 45 + a * 25;
+    head(ctx, 140, headY, 11);
+    line(ctx, 140, headY + 11, 140, hipY); // torso more upright
+    var kx = 140 + 8;
+    var ky = hipY + 20 + a * 10;
+    line(ctx, 140, hipY, 110, ky);
+    line(ctx, 140, hipY, 170, ky);
+    line(ctx, 110, ky, 105, 195);
+    line(ctx, 170, ky, 175, 195);
+    // slight torso lean
+    if (a > 0.2) {
+      strokeCyan(ctx, 3);
+      line(ctx, 140, headY + 11, 140 - a * 12, hipY);
+    }
+    arrow(ctx, 210, 80 + a * 40, 210, 130);
+  }
+
+  var DEMO_DRAW = {
+    legpress: drawLegPress,
+    chestpress: drawChestPress,
+    latpulldown: drawLatPulldown,
+    shpress: drawShoulderPress,
+    cablecurl: drawCableCurl,
+    plank: drawPlank,
+    incline: drawIncline,
+    tripush: drawTriPush,
+    legcurl: drawLegCurl,
+    legext: drawLegExt,
+    calfraise: drawCalfRaise,
+    bwsquat: drawBwSquat
+  };
 
   function drawDemoFrame(kind, t0) {
     var ctx = demoCtx;
@@ -962,14 +1166,10 @@
     var h = demoCanvas.height;
     ctx.clearRect(0, 0, w, h);
     var elapsed = (t0 - demoStart) / 1000;
-    var period = kind === "plank" ? 1.6 : 1.4;
+    var period = kind === "plank" ? 1.8 : 1.6;
     var p = (elapsed % period) / period;
-    if (kind === "press") drawPress(ctx, p);
-    else if (kind === "pulldown") drawPulldown(ctx, p);
-    else if (kind === "curl") drawCurl(ctx, p);
-    else if (kind === "raise") drawRaise(ctx, p);
-    else if (kind === "plank") drawPlank(ctx, p);
-    else drawPress(ctx, p);
+    var fn = DEMO_DRAW[kind] || drawChestPress;
+    fn(ctx, p);
   }
 
   function startDemo(kind) {
