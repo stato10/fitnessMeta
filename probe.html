@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=600, height=600, initial-scale=1.0, user-scalable=no">
+<meta name="mrbd-web-app-capable" content="yes">
+<meta name="description" content="SetPace hardware probe. Diagnostic tool for Meta Ray-Ban Display, not the product.">
+<link rel="icon" href="data:,">
+<title>SetPace Probe</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { background: #000; }
+
+  body {
+    width: 600px; height: 600px; overflow: hidden;
+    margin: 0 auto;
+    background: #000;
+    color: #C9D6DC;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 22px;
+    line-height: 1.25;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Bright-on-black. Cyan accent, never pure #FFF for text (ghosting on the
+     waveguide). Pure #FFF is used only by the flash overlay, deliberately. */
+  #app { width: 600px; height: 600px; padding: 14px; position: relative; }
+
+  .hdr { font-size: 20px; color: #6E8892; letter-spacing: .04em; margin-bottom: 10px; }
+  .q   { font-size: 24px; color: #DCE9EE; margin-bottom: 12px; }
+  .sm  { font-size: 18px; color: #6E8892; margin-top: 8px; }
+  .big { font-size: 90px; color: #00E5FF; line-height: 1.0; }
+  .cy  { color: #00E5FF; }
+  .warn { color: #FFB020; }
+  .bad  { color: #FF5C5C; }
+
+  /* Every focusable element in this page carries .f and is at least 88px tall. */
+  .f {
+    min-height: 88px; width: 100%;
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 14px; margin-bottom: 8px;
+    border: 2px solid #1B282D; border-radius: 10px;
+    background: #000; color: #B4C4CA;
+    font-size: 24px; text-align: left;
+    outline: none; cursor: default;
+  }
+  .f:focus { border-color: #00E5FF; background: #06272E; color: #EAF7FA; box-shadow: inset 0 0 0 2px #00E5FF; }
+  .cr { flex: none; width: 10px; height: 46px; border-radius: 2px; background: #00E5FF; opacity: 0; }
+  .f:focus .cr { opacity: 1; }
+  .lbl { flex: 1; min-width: 0; overflow: hidden; }
+  .sub { flex: none; font-size: 17px; color: #6E8892; }
+  .f:focus .sub { color: #7FD8E8; }
+
+  .rows { display: flex; flex-direction: column; }
+
+  /* Flash overlay. Only place #FFFFFF appears. */
+  #ov { display: none; position: fixed; z-index: 300; pointer-events: none; }
+  #ov.full { display: block; inset: 0; background: #FFFFFF; }
+  #ov.edge { display: block; inset: 0; background: transparent; border: 80px solid #FFFFFF; }
+  #ov.circle {
+    display: block; left: -300px; top: -300px; width: 1200px; height: 1200px;
+    border-radius: 50%; background: #FFFFFF;
+  }
+
+  /* Any uncaught error renders here. There is no console on the glasses, and a
+     thrown exception would otherwise look identical to a transparent display. */
+  #err {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: #000; color: #FF5C5C; padding: 16px; font-size: 19px;
+    overflow: hidden; word-break: break-word;
+  }
+  #err b { color: #FFB020; display: block; font-size: 23px; margin-bottom: 8px; }
+  #err .hint { color: #6E8892; font-size: 18px; margin-top: 12px; }
+
+  /* Desktop-only JSON dump. Hidden on the glasses unless explicitly opened. */
+  #json {
+    display: none; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+    z-index: 400; background: #000; color: #7CFC9A; font-size: 12px;
+    font-family: ui-monospace, Consolas, monospace;
+    padding: 10px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+  }
+
+  /* Development affordance only. Never visible at a 600px viewport. */
+  #deskhint { display: none; }
+  @media (min-width: 760px) {
+    body { border-left: 1px solid #1B282D; border-right: 1px solid #1B282D; }
+    #deskhint {
+      display: block; position: fixed; left: 8px; top: 8px; width: calc(50vw - 320px);
+      max-width: 300px; color: #4C6068; font-size: 13px; line-height: 1.5;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="deskhint">
+  Desktop dev mode. The 600x600 frame to the right is the glasses viewport.<br><br>
+  Arrow keys move focus, Enter selects. Mouse does nothing anywhere in this page,
+  by design.<br><br>
+  Results are in localStorage under <code>setpace_probe_v1</code>, and
+  <code>Results &gt; JSON dump</code> prints them here and to the console.
+</div>
+
+<div id="app"></div>
+<div id="ov"></div>
+<div id="err"></div>
+<pre id="json"></pre>
+
+<script>
+"use strict";
+(function () {
+
+/* ------------------------------------------------------------------ *
+ * 0. Error surfacing. Installed first, before anything can throw.
+ * ------------------------------------------------------------------ */
+
+var errEl = document.getElementById('err');
+var errShown = false;
+
+function showError(kind, msg, extra) {
+  errShown = true;
+  errEl.style.display = 'block';
+  errEl.innerHTML = '<b>' + esc(kind) + '</b>' + esc(String(msg)) +
+    (extra ? '<div class="hint">' + esc(String(extra)) + '</div>' : '') +
+    '<div class="hint">Select to dismiss. The probe keeps running; results so far are saved.</div>';
+  try { logEvent('error', { kind: kind, msg: String(msg), extra: String(extra || '') }); save(); } catch (e) {}
+}
+
+function hideError() { errShown = false; errEl.style.display = 'none'; }
+
+window.onerror = function (msg, src, line, col) {
+  showError('Script error', msg, (src || '') + ':' + line + ':' + col);
+  return true;
+};
+window.addEventListener('unhandledrejection', function (e) {
+  showError('Unhandled promise rejection', (e.reason && e.reason.message) || e.reason || 'unknown', '');
+});
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ------------------------------------------------------------------ *
+ * 1. Storage. Everything must survive a middle-pinch Restart.
+ * ------------------------------------------------------------------ */
+
+var STORE = 'setpace_probe_v1';
+var app = document.getElementById('app');
+var ov = document.getElementById('ov');
+var DB;
+
+function blankDb() {
+  return {
+    v: 1,
+    startedAt: Date.now(),
+    sessions: 1,
+    device: null,
+    results: [],   // user-reported and measured findings
+    events: [],    // lifecycle, audio diagnostics, focus measurements
+    keylog: [],    // every keydown, with timestamps
+    pending: null, // an in-flight long test, so a Restart does not lose it
+    minFocusablePx: null,
+    saveError: null
+  };
+}
+
+function load() {
+  try {
+    var raw = localStorage.getItem(STORE);
+    if (!raw) return blankDb();
+    var d = JSON.parse(raw);
+    if (!d || d.v !== 1) return blankDb();
+    d.sessions = (d.sessions || 1) + 1;
+    d.results = d.results || []; d.events = d.events || []; d.keylog = d.keylog || [];
+    return d;
+  } catch (e) { return blankDb(); }
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORE, JSON.stringify(DB));
+    DB.saveError = null;
+  } catch (e) {
+    DB.keylog = DB.keylog.slice(-300);
+    DB.events = DB.events.slice(-200);
+    try { localStorage.setItem(STORE, JSON.stringify(DB)); }
+    catch (e2) { DB.saveError = String(e2 && e2.name || e2); }
+  }
+}
+
+var saveTimer = null;
+function saveSoon() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(function () { saveTimer = null; save(); }, 1500);
+}
+
+function record(test, key, value, extra) {
+  var r = { at: Date.now(), test: test, k: key, v: value };
+  if (extra) r.x = extra;
+  DB.results.push(r);
+  save();
+}
+
+/* Events that would be painful to lose if a middle-pinch Restart, a crash or a
+   flat battery lands between the event and the next throttled write. */
+var CRITICAL = {
+  boot: 1, error: 1, flash_fired: 1, wakelock: 1, sleep_end: 1,
+  lifecycle: 1, focusable_too_short: 1, double_select_dropped: 1
+};
+
+function logEvent(type, data) {
+  DB.events.push({ at: Date.now(), rt: Math.round(perf()), type: type, d: data || {} });
+  if (DB.events.length > 900) DB.events.splice(0, DB.events.length - 900);
+  if (CRITICAL[type]) save(); else saveSoon();
+}
+
+function perf() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+
+DB = load();
+
+/* ------------------------------------------------------------------ *
+ * 2. Focus ring. Divs with tabindex, never <button>, so Enter is
+ *    handled here and never also fires a native click.
+ * ------------------------------------------------------------------ */
+
+var H = {}, hSeq = 0;
+
+function resetH() { H = {}; hSeq = 0; }
+
+function btn(label, onSelect, opts) {
+  opts = opts || {};
+  var k = 'h' + (++hSeq);
+  H[k] = onSelect;
+  return '<div class="f" tabindex="0" data-h="' + k + '" data-id="' + esc(opts.id || k) + '"' +
+    (opts.style ? ' style="' + opts.style + '"' : '') + '>' +
+    '<i class="cr"></i>' +
+    '<span class="lbl"' + (opts.lblStyle ? ' style="' + opts.lblStyle + '"' : '') + '>' + label + '</span>' +
+    (opts.sub ? '<span class="sub">' + esc(opts.sub) + '</span>' : '') +
+    '</div>';
+}
+
+function ring() {
+  return Array.prototype.slice.call(app.querySelectorAll('.f'));
+}
+
+function render(html, focusId) {
+  app.innerHTML = html;
+  measureFocusables();
+  var els = ring();
+  var target = null;
+  if (focusId) target = app.querySelector('[data-id="' + focusId + '"]');
+  if (!target) target = els[0];
+  if (target) target.focus();
+}
+
+/* Empirical check of the 88px rule, on the device that actually matters.
+   Runs on every render, so it covers every screen the user visits. */
+function measureFocusables() {
+  var els = ring();
+  for (var i = 0; i < els.length; i++) {
+    var h = Math.round(els[i].getBoundingClientRect().height);
+    if (!h) continue;
+    if (DB.minFocusablePx === null || h < DB.minFocusablePx) DB.minFocusablePx = h;
+    if (h < 88) logEvent('focusable_too_short', { screen: CUR.name, id: els[i].dataset.id, px: h });
+  }
+}
+
+function move(dir) {
+  var els = ring();
+  if (!els.length) return;
+  var i = els.indexOf(document.activeElement);
+  if (i === -1) i = (dir > 0 ? -1 : 0);        // focus was lost; re-enter the ring
+  var n = (i + dir + els.length) % els.length;
+  els[n].focus();
+}
+
+var lastSelectAt = -1e9;
+
+function activate() {
+  var el = document.activeElement;
+  if (!el || !el.dataset || !el.dataset.h) {
+    // Nothing focusable is focused. On the glasses this is a dead select, and
+    // it is exactly the failure the re-render test is designed to produce.
+    logEvent('select_with_no_focus', { screen: CUR.name });
+    return;
+  }
+  var now = perf();
+  if (now - lastSelectAt < 200) {
+    logEvent('double_select_dropped', { screen: CUR.name, dtMs: Math.round(now - lastSelectAt), id: el.dataset.id });
+    return;
+  }
+  lastSelectAt = now;
+  var fn = H[el.dataset.h];
+  if (typeof fn === 'function') fn();
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Key instrumentation. Log everything, including keys the platform
+ *    is not documented to send, so undocumented gestures show up.
+ * ------------------------------------------------------------------ */
+
+var NAV = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 };
+var heldSince = {};
+var awaitingReaction = null;   // set by the flash test to measure notice latency
+var pressCount = 0;            // monotonic, unlike keylog which is capped
+
+document.addEventListener('keydown', function (e) {
+  var k = e.key;
+  pressCount++;
+  var entry = {
+    at: Date.now(), rt: Math.round(perf()), k: k, s: CUR.name,
+    f: (document.activeElement && document.activeElement.dataset) ? (document.activeElement.dataset.id || null) : null
+  };
+  if (e.repeat) entry.rep = 1;
+  DB.keylog.push(entry);
+  if (DB.keylog.length > 2500) DB.keylog.splice(0, DB.keylog.length - 2500);
+  if (heldSince[k] === undefined) heldSince[k] = { t: perf(), e: entry };
+  saveSoon();
+
+  if (awaitingReaction) {
+    var rt = Math.round(perf() - awaitingReaction.firedAt);
+    awaitingReaction.cb(rt);
+    awaitingReaction = null;
+  }
+
+  if (k in NAV || k === 'Enter') e.preventDefault();
+
+  if (errShown) { if (k === 'Enter') hideError(); return; }
+  if (jsonOpen) { if (k === 'Enter') closeJson(); return; }
+
+  if (k in NAV) move(NAV[k]);
+  else if (k === 'Enter') activate();
+}, true);
+
+document.addEventListener('keyup', function (e) {
+  var h = heldSince[e.key];
+  if (h) { h.e.d = Math.round(perf() - h.t); delete heldSince[e.key]; }
+}, true);
+
+/* Lifecycle. This is the raw material for the display-sleep question. */
+['visibilitychange', 'pagehide', 'pageshow', 'freeze', 'resume', 'blur', 'focus'].forEach(function (t) {
+  var target = (t === 'visibilitychange') ? document : window;
+  target.addEventListener(t, function () {
+    logEvent('lifecycle', { e: t, hidden: document.hidden, vis: document.visibilityState });
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * 4. Screen plumbing.
+ * ------------------------------------------------------------------ */
+
+var CUR = { name: 'boot', p: {} };
+var onLeave = null;
+
+var T = {
+  ids: [],
+  timeout: function (fn, ms) { var id = setTimeout(fn, ms); this.ids.push(id); return id; },
+  interval: function (fn, ms) { var id = setInterval(fn, ms); this.ids.push(id); return id; },
+  clear: function () {
+    for (var i = 0; i < this.ids.length; i++) { clearTimeout(this.ids[i]); clearInterval(this.ids[i]); }
+    this.ids = [];
+  }
+};
+
+function goto(name, p) {
+  if (onLeave) { try { onLeave(); } catch (e) {} onLeave = null; }
+  T.clear();
+  setOv('off');
+  awaitingReaction = null;
+  CUR = { name: name, p: p || {} };
+  resetH();
+  SCREENS[name](CUR.p);
+}
+
+function ask(question, options, cb, headerText) {
+  resetH();
+  var h = (headerText ? '<div class="hdr">' + esc(headerText) + '</div>' : '') +
+    '<div class="q">' + question + '</div><div class="rows">';
+  options.forEach(function (o) { h += btn(esc(o), function () { cb(o); }); });
+  render(h + '</div>');
+}
+
+function setOv(mode) {
+  ov.style.transition = '';
+  ov.style.transform = '';
+  ov.className = (mode === 'off') ? '' : mode;
+}
+
+function fmtClock(ms) {
+  var s = Math.max(0, Math.round(ms / 1000));
+  return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+}
+
+function shuffle(a) {
+  a = a.slice();
+  for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+
+var SCREENS = {};
+
+/* ------------------------------------------------------------------ *
+ * 5. Menu
+ * ------------------------------------------------------------------ */
+
+var MENU = [
+  ['1  Audio', 'can it beep at all', 'audio'],
+  ['2  Flash', 'visual attention cue', 'flash'],
+  ['3  Display sleep', 'does it survive rest', 'sleep'],
+  ['4  Focus targets', '88px hit rate', 'targets'],
+  ['5  Text sizes', 'what is readable', 'textIntro'],
+  ['6  Re-render focus', 'the countdown bug', 'rerender'],
+  ['7  Contrast', 'black and backgrounds', 'contrast'],
+  ['8  Results', 'read, dump, clear', 'results']
+];
+
+SCREENS.menu = function (p) {
+  var page = p.page || 0, per = 4;
+  var pages = Math.ceil(MENU.length / per);
+  var slice = MENU.slice(page * per, page * per + per);
+  var h = '<div class="hdr">SetPace hardware probe &nbsp;&middot;&nbsp; page ' + (page + 1) + '/' + pages + '</div>';
+  h += '<div class="rows">';
+  slice.forEach(function (m) {
+    h += btn(esc(m[0]), function () { goto(m[2], {}); }, { sub: m[1], id: m[2] });
+  });
+  h += btn('More tests', function () { goto('menu', { page: (page + 1) % pages }); },
+    { sub: 'page ' + (((page + 1) % pages) + 1) + '/' + pages, id: 'more' });
+  render(h + '</div>', p.focus);
+};
+
+/* ------------------------------------------------------------------ *
+ * 6. TEST 1 - AUDIO
+ *    Documentation says Web Apps have no audio output. A shipping
+ *    fitness Web App appears to use WebAudio, an <audio> element and
+ *    speechSynthesis anyway. This test decides it empirically, because
+ *    if any path works the rest cue should be sound and the flash
+ *    becomes secondary.
+ * ------------------------------------------------------------------ */
+
+var AUDIO_TRIALS = [
+  ['webaudio', 'WebAudio oscillator', 'three 880 Hz beeps'],
+  ['element', 'Audio() element', 'generated WAV, no network'],
+  ['speech', 'speechSynthesis', 'says "rest complete"'],
+  ['vibrate', 'navigator.vibrate', 'haptic, not sound']
+];
+
+SCREENS.audio = function () {
+  var h = '<div class="hdr">Test 1 &nbsp;&middot;&nbsp; audio</div>' +
+    '<div class="q">Wear the glasses. Room quiet. Run each one.</div><div class="rows">';
+  AUDIO_TRIALS.forEach(function (t) {
+    var done = DB.results.some(function (r) { return r.test === 'audio' && r.k === t[0]; });
+    h += btn(esc(t[1]) + (done ? ' <span class="cy">&#10003;</span>' : ''),
+      function () { goto('audioRun', { id: t[0] }); }, { sub: t[2], id: t[0] });
+  });
+  h += btn('Back to menu', function () { goto('menu', { focus: 'audio' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+/* A short tone as a data URI. Built in JS so there is no network asset. */
+function toneWavDataUri(freq, ms, sampleRate) {
+  sampleRate = sampleRate || 22050;
+  var n = Math.floor(sampleRate * ms / 1000);
+  var total = 44 + n * 2;
+  var buf = new ArrayBuffer(total), dv = new DataView(buf), p = 0;
+  function tag(s) { for (var i = 0; i < 4; i++) dv.setUint8(p++, s.charCodeAt(i)); }
+  tag('RIFF'); dv.setUint32(p, total - 8, true); p += 4; tag('WAVE');
+  tag('fmt '); dv.setUint32(p, 16, true); p += 4;
+  dv.setUint16(p, 1, true); p += 2; dv.setUint16(p, 1, true); p += 2;
+  dv.setUint32(p, sampleRate, true); p += 4; dv.setUint32(p, sampleRate * 2, true); p += 4;
+  dv.setUint16(p, 2, true); p += 2; dv.setUint16(p, 16, true); p += 2;
+  tag('data'); dv.setUint32(p, n * 2, true); p += 4;
+  var ramp = sampleRate * 0.01;
+  for (var i = 0; i < n; i++) {
+    var env = Math.min(1, i / ramp, (n - i) / ramp);
+    var v = Math.sin(2 * Math.PI * freq * (i / sampleRate)) * env * 0.7;
+    dv.setInt16(p, Math.max(-1, Math.min(1, v)) * 32767, true); p += 2;
+  }
+  var u8 = new Uint8Array(buf), bin = '', CH = 4096;
+  for (var o = 0; o < u8.length; o += CH) {
+    bin += String.fromCharCode.apply(null, u8.subarray(o, o + CH));
+  }
+  return 'data:audio/wav;base64,' + btoa(bin);
+}
+
+var sharedCtx = null;
+function getCtx() {
+  var C = window.AudioContext || window.webkitAudioContext;
+  if (!C) return null;
+  if (!sharedCtx) sharedCtx = new C();
+  return sharedCtx;
+}
+
+/* Fires a WebAudio burst. Safe to call from a timer as long as the context
+   was created during a user gesture, which is what the sleep test relies on. */
+function webAudioBurst(ctx, beeps, freq) {
+  var t0 = ctx.currentTime + 0.05;
+  for (var i = 0; i < beeps; i++) {
+    var osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq || 880;
+    var s = t0 + i * 0.28;
+    g.gain.setValueAtTime(0.0001, s);
+    g.gain.exponentialRampToValueAtTime(0.6, s + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + 0.20);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(s); osc.stop(s + 0.22);
+  }
+}
+
+SCREENS.audioRun = function (p) {
+  var id = p.id;
+  var diag = { path: id };
+  render('<div class="hdr">Test 1 &middot; audio</div><div class="q">Playing now. Listen.</div>' +
+    '<div class="big" style="margin-top:60px">&#9835;</div>');
+
+  try {
+    if (id === 'webaudio') {
+      var ctx = getCtx();
+      if (!ctx) { diag.error = 'AudioContext constructor missing'; }
+      else {
+        diag.stateBefore = ctx.state;
+        diag.sampleRate = ctx.sampleRate;
+        diag.maxChannels = ctx.destination.maxChannelCount;
+        if (ctx.baseLatency !== undefined) diag.baseLatency = ctx.baseLatency;
+        var r = ctx.resume ? ctx.resume() : null;
+        if (r && r.then) r.then(function () { diag.resume = 'resolved'; }, function (e) { diag.resume = 'rejected: ' + e; });
+        webAudioBurst(ctx, 3, 880);
+        var ct0 = ctx.currentTime;
+        T.timeout(function () {
+          diag.stateAfter = ctx.state;
+          diag.clockAdvancedMs = Math.round((ctx.currentTime - ct0) * 1000);
+        }, 1100);
+      }
+    }
+
+    else if (id === 'element') {
+      var a = new Audio(toneWavDataUri(880, 900));
+      a.volume = 1.0;
+      diag.srcBytes = a.src.length;
+      ['playing', 'ended', 'stalled', 'suspend', 'error'].forEach(function (ev) {
+        a.addEventListener(ev, function () { diag['ev_' + ev] = true; });
+      });
+      var pr = a.play();
+      if (pr && pr.then) pr.then(function () { diag.play = 'resolved'; }, function (e) { diag.play = 'rejected: ' + (e && e.name) + ' ' + (e && e.message); });
+      else diag.play = 'no promise returned';
+      T.timeout(function () {
+        diag.currentTime = a.currentTime;      // > 0 means it really decoded and ran
+        diag.paused = a.paused;
+        diag.duration = a.duration;
+        diag.muted = a.muted;
+        diag.volume = a.volume;
+        if (a.error) diag.mediaError = a.error.code;
+      }, 1200);
+    }
+
+    else if (id === 'speech') {
+      if (!('speechSynthesis' in window)) { diag.error = 'speechSynthesis missing'; }
+      else {
+        var voices = window.speechSynthesis.getVoices();
+        diag.voiceCount = voices ? voices.length : 0;
+        var u = new SpeechSynthesisUtterance('Rest complete. Next set.');
+        u.rate = 1; u.volume = 1;
+        u.onstart = function () { diag.onstart = true; };
+        u.onend = function () { diag.onend = true; };
+        u.onerror = function (e) { diag.onerror = (e && e.error) || 'error'; };
+        window.speechSynthesis.speak(u);
+        T.timeout(function () { diag.speakingAt300ms = window.speechSynthesis.speaking; }, 300);
+      }
+    }
+
+    else if (id === 'vibrate') {
+      if (!navigator.vibrate) { diag.error = 'navigator.vibrate missing'; }
+      else { diag.returned = navigator.vibrate([200, 120, 200, 120, 200]); }
+    }
+  } catch (e) {
+    diag.threw = String(e && e.name) + ': ' + String(e && e.message);
+  }
+
+  logEvent('audio_diag', diag);
+
+  T.timeout(function () {
+    logEvent('audio_diag_late', diag);
+    var verb = (id === 'vibrate') ? 'Feel it?' : 'Hear it?';
+    var opts = (id === 'vibrate')
+      ? ['Felt it clearly', 'Felt something faint', 'Felt nothing', 'Unsure']
+      : ['Heard it clearly', 'Heard it faintly', 'Heard nothing', 'Unsure'];
+    ask(verb + ' <span class="sm">Through the glasses, not the phone.</span>', opts, function (v) {
+      record('audio', id, v, diag);
+      goto('audio', {});
+    }, 'Test 1 - ' + id);
+  }, 2200);
+};
+
+/* ------------------------------------------------------------------ *
+ * 7. TEST 2 - FLASH
+ *    Six trials in random order, including a control that flashes
+ *    nothing, so the user's own false-positive rate is measurable.
+ * ------------------------------------------------------------------ */
+
+var FLASH_VARIANTS = ['solid', 'pulse3', 'strobe', 'expand', 'edge', 'control'];
+var FLASH_LABEL = {
+  solid: 'Solid white, 700 ms',
+  pulse3: 'Three slow pulses',
+  strobe: 'Fast strobe, 8 Hz',
+  expand: 'Circle expanding from centre',
+  edge: 'Edge frame only, three pulses',
+  control: 'Control - nothing flashes'
+};
+
+var flashQueue = null, flashDone = 0;
+
+SCREENS.flash = function () {
+  if (!flashQueue) { flashQueue = shuffle(FLASH_VARIANTS); flashDone = 0; }
+  var remaining = flashQueue.length - flashDone;
+  var h = '<div class="hdr">Test 2 &nbsp;&middot;&nbsp; attention flash</div>';
+
+  if (remaining <= 0) {
+    h += '<div class="q">All six trials done. Run the set again for a second sample, or go back.</div><div class="rows">' +
+      btn('Run all six again', function () { flashQueue = shuffle(FLASH_VARIANTS); flashDone = 0; goto('flash', {}); }, { id: 'again' }) +
+      btn('Back to menu', function () { goto('menu', { focus: 'flash' }); }, { id: 'back' });
+    render(h + '</div>');
+    return;
+  }
+
+  h += '<div class="q">Trial ' + (flashDone + 1) + ' of ' + flashQueue.length +
+    '. After you select, look away from the lens and at something across the room. ' +
+    'It fires after a random 6 to 14 second delay.</div><div class="rows">' +
+    btn('Start trial', function () { goto('flashRun', { variant: flashQueue[flashDone] }); }, { id: 'start' }) +
+    btn('Back to menu', function () { goto('menu', { focus: 'flash' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+function runFlash(variant, done) {
+  var t0 = perf();
+  if (variant === 'control') { T.timeout(function () { done(t0); }, 700); return; }
+
+  if (variant === 'expand') {
+    ov.className = 'circle';
+    ov.style.transition = 'none';
+    ov.style.transform = 'scale(0)';
+    void ov.offsetWidth;
+    ov.style.transition = 'transform 550ms cubic-bezier(.2,.7,.3,1)';
+    ov.style.transform = 'scale(1)';
+    T.timeout(function () { setOv('off'); done(t0); }, 620);
+    return;
+  }
+
+  var steps =
+    variant === 'solid' ? [['full', 700]] :
+    variant === 'pulse3' ? [['full', 190], ['off', 190], ['full', 190], ['off', 190], ['full', 190]] :
+    variant === 'strobe' ? [['full', 62], ['off', 62], ['full', 62], ['off', 62], ['full', 62], ['off', 62], ['full', 62], ['off', 62], ['full', 62]] :
+    /* edge */             [['edge', 200], ['off', 180], ['edge', 200], ['off', 180], ['edge', 200]];
+
+  var i = 0;
+  (function next() {
+    if (i >= steps.length) { setOv('off'); done(t0); return; }
+    var s = steps[i++];
+    setOv(s[0]);
+    T.timeout(next, s[1]);
+  })();
+}
+
+SCREENS.flashRun = function (p) {
+  var variant = p.variant;
+  var delay = 6000 + Math.floor(Math.random() * 8000);
+
+  render('<div class="q">Look away now.</div><div class="sm">Keep the glasses on. Do not watch the lens.</div>');
+
+  // Go fully black. On an additive display this is a transparent lens, which
+  // is the honest starting state for an attention test.
+  T.timeout(function () { app.innerHTML = ''; }, 2200);
+
+  T.timeout(function () {
+    var reaction = null;
+    // Armed before the flash starts, so a press during the flash still counts.
+    // Cleared by the first key of any kind, which is the notice latency.
+    awaitingReaction = { firedAt: perf(), cb: function (ms) { reaction = ms; } };
+    logEvent('flash_fired', { variant: variant, delayMs: delay });
+
+    runFlash(variant, function () {
+      ask('Did you notice it?', [
+        'Yes, immediately',
+        'Yes, after a moment',
+        'Only because I was expecting it',
+        'No, I missed it'
+      ], function (v) {
+        awaitingReaction = null;
+        record('flash', variant, v, { delayMs: delay, reactionMs: reaction, label: FLASH_LABEL[variant] });
+        flashDone++;
+        goto('flash', {});
+      }, 'Test 2 - ' + FLASH_LABEL[variant]);
+    });
+  }, delay);
+};
+
+/* ------------------------------------------------------------------ *
+ * 8. TEST 3 - DISPLAY SLEEP
+ *    The top risk. Meta's own DAT docs say the display dims and sleeps
+ *    after inactivity. All timing is read from the wall clock, so the
+ *    number is still correct whenever the display comes back.
+ * ------------------------------------------------------------------ */
+
+var SLEEP_RUNS = {
+  A: { mins: 3, mode: 'static', wake: false, label: '3 min, fully static page' },
+  B: { mins: 3, mode: 'tick', wake: false, label: '3 min, 1 Hz countdown' },
+  C: { mins: 3, mode: 'tick', wake: true, label: '3 min, 1 Hz + wakeLock' },
+  D: { mins: 5, mode: 'tick', wake: true, label: '5 min, 1 Hz + wakeLock' }
+};
+
+var wakeSentinel = null;
+
+SCREENS.sleep = function () {
+  var h = '<div class="hdr">Test 3 &nbsp;&middot;&nbsp; display sleep</div>' +
+    '<div class="q" style="font-size:20px">Each run ends with a beep and a flash. Start, then do not gesture.</div><div class="rows">';
+  Object.keys(SLEEP_RUNS).forEach(function (k) {
+    var done = DB.results.some(function (r) { return r.test === 'sleep' && r.k === k; });
+    h += btn(k + '. ' + esc(SLEEP_RUNS[k].label) + (done ? ' <span class="cy">&#10003;</span>' : ''),
+      function () { goto('sleepRun', { run: k }); }, { id: k });
+  });
+  h += btn('Back to menu', function () { goto('menu', { focus: 'sleep' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+SCREENS.sleepRun = function (p) {
+  var cfg = SLEEP_RUNS[p.run];
+  var startedAt = Date.now();
+  var endsAt = startedAt + cfg.mins * 60000;
+  var diag = { run: p.run, mode: cfg.mode, mins: cfg.mins, wakeLock: 'not requested', maxTickGapMs: 0, ticks: 0 };
+
+  // Survive a Restart: the run is on record before anything can go wrong.
+  DB.pending = { test: 'sleep', run: p.run, startedAt: startedAt, endsAt: endsAt };
+  save();
+
+  // Created inside the select gesture so the beep at the end is allowed to sound.
+  var ctx = getCtx();
+  if (ctx && ctx.resume) { try { ctx.resume(); } catch (e) {} }
+
+  if (cfg.wake) {
+    if (!('wakeLock' in navigator)) {
+      diag.wakeLock = 'API missing';
+      logEvent('wakelock', { result: 'missing' });
+    } else {
+      try {
+        navigator.wakeLock.request('screen').then(function (s) {
+          wakeSentinel = s;
+          diag.wakeLock = 'granted';
+          logEvent('wakelock', { result: 'granted' });
+          s.addEventListener('release', function () { logEvent('wakelock', { result: 'released' }); });
+        }, function (e) {
+          diag.wakeLock = 'rejected: ' + (e && e.name) + ' ' + (e && e.message);
+          logEvent('wakelock', { result: 'rejected', err: String(e && e.name) });
+        });
+      } catch (e) {
+        diag.wakeLock = 'threw: ' + String(e && e.message);
+        logEvent('wakelock', { result: 'threw' });
+      }
+    }
+  }
+
+  onLeave = function () {
+    if (wakeSentinel) { try { wakeSentinel.release(); } catch (e) {} wakeSentinel = null; }
+  };
+
+  function head() {
+    return '<div class="hdr">Sleep run ' + p.run + ' &middot; ' + esc(cfg.label) + '</div>';
+  }
+
+  if (cfg.mode === 'static') {
+    // Deliberately never touched again. The control for "do DOM updates
+    // keep the display awake".
+    render(head() +
+      '<div class="q">Static. Nothing on this page will change until it ends.</div>' +
+      '<div class="big" style="margin:26px 0">' + fmtClock(cfg.mins * 60000) + '</div>' +
+      '<div class="sm">Started ' + new Date(startedAt).toTimeString().slice(0, 8) +
+      '. Ends ' + new Date(endsAt).toTimeString().slice(0, 8) + '.</div>' +
+      '<div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+      btn('Abort to menu', function () { DB.pending = null; save(); goto('menu', { focus: 'sleep' }); }, { id: 'abort' }) +
+      '</div>');
+  } else {
+    render(head() +
+      '<div class="q">Waiting. Do not gesture.</div>' +
+      '<div class="big" id="sleepnum" style="margin:26px 0">' + fmtClock(endsAt - Date.now()) + '</div>' +
+      '<div class="sm" id="sleepmeta">tick 0</div>' +
+      '<div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+      btn('Abort to menu', function () { DB.pending = null; save(); goto('menu', { focus: 'sleep' }); }, { id: 'abort' }) +
+      '</div>');
+
+    var lastTick = perf();
+    T.interval(function () {
+      var now = perf();
+      var gap = now - lastTick;
+      lastTick = now;
+      if (gap > diag.maxTickGapMs) diag.maxTickGapMs = Math.round(gap);
+      diag.ticks++;
+      var n = document.getElementById('sleepnum');
+      var m = document.getElementById('sleepmeta');
+      // Wall-clock derived, never accumulated, so a suspend does not drift it.
+      if (n) n.textContent = fmtClock(endsAt - Date.now());
+      if (m) m.textContent = 'tick ' + diag.ticks + ' - worst gap ' + diag.maxTickGapMs + ' ms';
+    }, 1000);
+  }
+
+  var scheduledFor = perf() + cfg.mins * 60000;
+  T.timeout(function () {
+    diag.timerDriftMs = Math.round(perf() - scheduledFor);
+    diag.wallElapsedMs = Date.now() - startedAt;
+    diag.hiddenAtEnd = document.hidden;
+    logEvent('sleep_end', diag);
+
+    if (ctx) {
+      try {
+        diag.ctxStateAtEnd = ctx.state;
+        if (ctx.resume) ctx.resume();
+        webAudioBurst(ctx, 3, 990);
+      } catch (e) { diag.endBeepThrew = String(e && e.message); }
+    }
+    runFlash('pulse3', function () {
+      goto('sleepReport', { run: p.run, diag: diag });
+    });
+  }, cfg.mins * 60000);
+};
+
+/* Reached at boot when a sleep run was cut short by a Restart, a reload or a
+   dead battery. The run is worth reporting precisely because it was cut short. */
+SCREENS.sleepResume = function () {
+  var pend = DB.pending;
+  var mins = Math.round((Date.now() - pend.startedAt) / 60000);
+  var h = '<div class="hdr">Unfinished sleep run ' + esc(pend.run) + '</div>' +
+    '<div class="q">Started about ' + mins + ' min ago and never reported. ' +
+    'The app was restarted or reloaded in between, which is itself a finding.</div><div class="rows">' +
+    btn('Report what I saw', function () { goto('sleepReport', { run: pend.run, resumed: true }); }, { id: 'report' }) +
+    btn('Discard it', function () { DB.pending = null; save(); goto('menu', {}); }, { id: 'discard' });
+  render(h + '</div>');
+};
+
+SCREENS.sleepReport = function (p) {
+  var diag = p.diag || {};
+  if (p.resumed && DB.pending) {
+    diag = { run: DB.pending.run, note: 'reported after a restart or reload', plannedEndsAt: DB.pending.endsAt };
+  }
+  // Show the lifecycle timeline for this run, since there is no console.
+  var since = (DB.pending && DB.pending.startedAt) || (Date.now() - 400000);
+  var lines = DB.events.filter(function (e) {
+    return e.at >= since && (e.type === 'lifecycle' || e.type === 'wakelock');
+  }).slice(-5).map(function (e) {
+    return '+' + Math.round((e.at - since) / 1000) + 's  ' + (e.d.e || e.type) + ' ' + (e.d.hidden ? '(hidden)' : '') + (e.d.result || '');
+  });
+
+  var h = '<div class="hdr">Sleep run ' + esc(p.run) + ' - what did you see?</div>' +
+    '<div class="sm" style="margin:0 0 6px;height:44px;overflow:hidden;font-size:16px">' +
+    (diag.maxTickGapMs !== undefined ? 'worst tick gap ' + diag.maxTickGapMs + ' ms &middot; ' : '') +
+    (diag.timerDriftMs !== undefined ? 'drift ' + diag.timerDriftMs + ' ms &middot; ' : '') +
+    'wakeLock: ' + esc(String(diag.wakeLock || 'n/a')) + '<br>' +
+    (lines.length ? esc(lines.join(' | ')) : 'no lifecycle events recorded') +
+    '</div><div class="rows">';
+
+  ['Stayed fully lit the whole time',
+   'Dimmed but stayed readable',
+   'Went black, came back when I moved or gestured',
+   'Went black and never came back',
+   'Unsure - I was not watching'
+  ].forEach(function (o) {
+    h += btn(esc(o), function () {
+      record('sleep', p.run, o, diag);
+      ask('Did the end signal reach you?', ['Saw the flash and heard the beep', 'Saw the flash only', 'Heard the beep only', 'Neither'], function (v2) {
+        record('sleep_signal', p.run, v2, null);
+        DB.pending = null;
+        save();
+        goto('sleep', {});
+      }, 'Sleep run ' + p.run);
+    });
+  });
+  render(h + '</div>');
+};
+
+/* ------------------------------------------------------------------ *
+ * 9. TEST 4 - FOCUS TARGETS
+ *    Rounds of 1, 2, 3 and 4 stacked 88px targets. Presses are counted
+ *    against the theoretical minimum, so this produces an error rate
+ *    rather than an impression.
+ * ------------------------------------------------------------------ */
+
+var LETTERS = ['A', 'B', 'C', 'D'];
+var targetRounds = [1, 2, 3, 4];
+
+SCREENS.targets = function () {
+  var h = '<div class="hdr">Test 4 &nbsp;&middot;&nbsp; 88px selection</div>' +
+    '<div class="q">Four rounds. Each one names a target letter. Get to it and select. ' +
+    'Do this out of breath, mid-workout, not sitting still.</div><div class="rows">' +
+    btn('Start round 1', function () { goto('targetRound', { i: 0 }); }, { id: 'start' }) +
+    btn('Back to menu', function () { goto('menu', { focus: 'targets' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+SCREENS.targetRound = function (p) {
+  var i = p.i, n = targetRounds[i];
+  var want = Math.floor(Math.random() * n);
+  var t0 = perf();
+  var pressesAtStart = pressCount;
+
+  var h = '<div class="hdr">Round ' + (i + 1) + ' of 4 &middot; ' + n + ' target' + (n > 1 ? 's' : '') + '</div>' +
+    '<div class="q">Select <span class="cy">' + LETTERS[want] + '</span></div><div class="rows">';
+  for (var j = 0; j < n; j++) {
+    (function (j) {
+      h += btn('<span style="font-size:34px">' + LETTERS[j] + '</span>', function () {
+        var presses = pressCount - pressesAtStart;   // includes the Enter
+        var minMoves = Math.min(want, n - want);            // ring wraps both ways
+        record('targets', 'n' + n, (j === want ? 'hit' : 'miss'), {
+          wanted: LETTERS[want], picked: LETTERS[j],
+          presses: presses, minimum: minMoves + 1,
+          extra: presses - (minMoves + 1),
+          ms: Math.round(perf() - t0)
+        });
+        if (i + 1 < targetRounds.length) goto('targetRound', { i: i + 1 });
+        else goto('targetsDone', {});
+      }, { id: 'tgt' + j });
+    })(j);
+  }
+  render(h + '</div>');
+};
+
+SCREENS.targetsDone = function () {
+  var rows = DB.results.filter(function (r) { return r.test === 'targets'; }).slice(-4);
+  var h = '<div class="hdr">Test 4 - result</div><div class="sm" style="margin-bottom:10px">';
+  rows.forEach(function (r) {
+    h += r.k + ': ' + r.v + ', ' + r.x.presses + ' presses vs ' + r.x.minimum + ' minimum, ' + r.x.ms + ' ms<br>';
+  });
+  h += '</div><div class="rows">' +
+    btn('Run four rounds again', function () { goto('targets', {}); }, { id: 'again' }) +
+    btn('Back to menu', function () { goto('menu', { focus: 'targets' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+/* ------------------------------------------------------------------ *
+ * 10. TEST 5 - TEXT SIZES
+ *     Each ladder row is itself the focusable answer, so the user picks
+ *     the smallest row they can read by selecting that row.
+ * ------------------------------------------------------------------ */
+
+var LADDERS = [
+  { k: 'heading', content: 'Barbell Bench Press', sizes: [40, 32, 26, 20] },
+  { k: 'hero', content: '60 kg x 8', sizes: [110, 88, 68, 52] },
+  { k: 'countdown', content: '1:30', sizes: [120, 92, 70, 52] },
+  { k: 'meta', content: 'Set 2/4 - next 3:00', sizes: [28, 22, 18, 16] }
+];
+
+SCREENS.textIntro = function () {
+  ask('Where are you right now? Tag the readings so a gym answer and a daylight answer do not get mixed up.',
+    ['Indoor gym lighting', 'Bright indoor or near a window', 'Outdoors in daylight', 'Dim or evening light'],
+    function (v) { goto('textLadder', { i: 0, light: v }); },
+    'Test 5 - text sizes');
+};
+
+SCREENS.textLadder = function (p) {
+  var L = LADDERS[p.i];
+  var h = '<div class="hdr">' + (p.i + 1) + '/4 &middot; ' + L.k + ' &middot; ' + esc(p.light) + '</div>' +
+    '<div class="q" style="font-size:20px">Select the smallest row you can read comfortably.</div><div class="rows">';
+  L.sizes.forEach(function (px) {
+    h += btn(esc(L.content), function () {
+      record('text', L.k, px + 'px', { light: p.light, smallest: px });
+      if (p.i + 1 < LADDERS.length) goto('textLadder', { i: p.i + 1, light: p.light });
+      else goto('textDone', { light: p.light });
+    }, { sub: px + 'px', lblStyle: 'font-size:' + px + 'px;line-height:1.05', id: 'px' + px });
+  });
+  render(h + '</div>');
+};
+
+SCREENS.textDone = function (p) {
+  ask('Was the largest size in any ladder still hard to read?',
+    ['No, all four were fine at the top', 'Yes, one of them', 'Yes, more than one'],
+    function (v) {
+      record('text', 'largest_still_hard', v, { light: p.light });
+      goto('menu', { focus: 'textIntro' });
+    }, 'Test 5 - ' + p.light);
+};
+
+/* ------------------------------------------------------------------ *
+ * 11. TEST 6 - RE-RENDER FOCUS
+ *     The specific bug we expect: a 1 Hz countdown that rebuilds the DOM
+ *     resets focus, so the user can never reach Skip. Measured, not felt.
+ * ------------------------------------------------------------------ */
+
+SCREENS.rerender = function () {
+  var h = '<div class="hdr">Test 6 &nbsp;&middot;&nbsp; focus across a re-render</div>' +
+    '<div class="q" style="font-size:21px">A countdown ticks every second next to a Skip button. Put focus on Skip and leave it. ' +
+    'If the ring vanishes, press an arrow to get it back and keep going. The probe counts what survives.</div><div class="rows">' +
+    btn('Naive full re-render', function () { goto('rerenderRun', { mode: 'naive' }); }, { sub: 'innerHTML', id: 'naive' }) +
+    btn('Targeted text update', function () { goto('rerenderRun', { mode: 'keyed' }); }, { sub: 'textContent', id: 'keyed' }) +
+    btn('Back to menu', function () { goto('menu', { focus: 'rerender' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+SCREENS.rerenderRun = function (p) {
+  var TICKS = 15;
+  var left = TICKS, kept = 0, lost = 0, checked = 0;
+
+  function build() {
+    resetH();
+    return '<div class="hdr">' + (p.mode === 'naive' ? 'Naive: whole screen rebuilt each tick' : 'Targeted: only the number is written') + '</div>' +
+      '<div class="big" id="rrnum" style="margin:6px 0 10px">' + fmtClock(left * 1000) + '</div>' +
+      '<div class="sm" id="rrstat">kept ' + kept + ' / lost ' + lost + '</div>' +
+      '<div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+      btn('Skip rest', function () { finish('selected Skip'); }, { id: 'skip' }) +
+      btn('Back to menu', function () { goto('menu', { focus: 'rerender' }); }, { id: 'back' }) +
+      '</div>';
+  }
+
+  function focusedId() {
+    var a = document.activeElement;
+    return (a && a.dataset && a.dataset.id) ? a.dataset.id : null;
+  }
+
+  render(build());
+
+  T.interval(function () {
+    left--;
+    var before = focusedId();
+
+    if (p.mode === 'naive') {
+      // The bug, faithfully. Focus is not restored afterwards on purpose.
+      app.innerHTML = build();
+    } else {
+      var n = document.getElementById('rrnum');
+      var s = document.getElementById('rrstat');
+      if (n) n.textContent = fmtClock(left * 1000);
+      if (s) s.textContent = 'kept ' + kept + ' / lost ' + lost;
+    }
+
+    var after = focusedId();
+    if (before) {
+      checked++;
+      if (after === before) kept++; else lost++;
+    }
+    logEvent('rerender_tick', { mode: p.mode, before: before, after: after });
+
+    if (left <= 0) finish('ran out');
+  }, 1000);
+
+  function finish(how) {
+    T.clear();
+    var diag = { mode: p.mode, ticksChecked: checked, kept: kept, lost: lost, ended: how };
+    record('rerender', p.mode, kept + '/' + checked + ' ticks kept focus', diag);
+    var verdict = (checked === 0)
+      ? 'No ticks were measured, because focus was never on a button when a tick landed.'
+      : (lost === 0 ? 'Focus survived every measured tick.' : 'Focus was lost on ' + lost + ' of ' + checked + ' ticks.');
+    ask(esc(verdict) + '<br><span class="sm">Did the cyan focus ring visibly flicker or jump?</span>',
+      ['Ring stayed put', 'Ring flickered but stayed', 'Ring jumped to the top each second', 'Did not watch closely'],
+      function (v) {
+        record('rerender_observed', p.mode, v, diag);
+        goto('rerender', {});
+      }, 'Test 6 - ' + p.mode);
+  }
+};
+
+/* ------------------------------------------------------------------ *
+ * 12. TEST 7 - CONTRAST AND TRANSPARENCY
+ * ------------------------------------------------------------------ */
+
+var TREATMENTS = [
+  { k: 'black', label: 'A. Pure #000 background', bg: '#000000', panel: null },
+  { k: 'grey', label: 'B. Dark grey #1F1F1F background', bg: '#1F1F1F', panel: null },
+  { k: 'panel', label: 'C. Grey panel behind the text', bg: '#000000', panel: '#3A3A3A' }
+];
+
+SCREENS.contrast = function () {
+  var h = '<div class="hdr">Test 7 &nbsp;&middot;&nbsp; contrast</div>' +
+    '<div class="q">Stand where the lens is over something visually busy - a rack of plates, a window, a crowd. ' +
+    'Then step through the three treatments.</div><div class="rows">' +
+    btn('Start', function () { goto('contrastShow', { i: 0 }); }, { id: 'start' }) +
+    btn('Transparency check only', function () { goto('transparency', {}); }, { id: 'trans' }) +
+    btn('Back to menu', function () { goto('menu', { focus: 'contrast' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+SCREENS.contrastShow = function (p) {
+  var t = TREATMENTS[p.i];
+  document.body.style.background = t.bg;
+  onLeave = function () { document.body.style.background = '#000'; };
+
+  var inner =
+    '<div style="font-size:30px;color:#00E5FF">Barbell Bench Press</div>' +
+    '<div style="font-size:96px;color:#00E5FF;line-height:1.05">60 kg x 8</div>' +
+    '<div style="font-size:20px;color:#9FB4BC">Set 2/4 - next 3:00</div>';
+
+  var block = t.panel
+    ? '<div style="background:' + t.panel + ';border-radius:14px;padding:16px">' + inner + '</div>'
+    : inner;
+
+  var h = '<div class="hdr">' + esc(t.label) + '</div>' + block +
+    '<div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+    btn(p.i + 1 < TREATMENTS.length ? 'Next treatment' : 'Done, rank them', function () {
+      if (p.i + 1 < TREATMENTS.length) goto('contrastShow', { i: p.i + 1 });
+      else goto('contrastRank', {});
+    }, { id: 'next' }) + '</div>';
+  render(h);
+};
+
+SCREENS.contrastRank = function () {
+  ask('Which was most readable against the busy background?',
+    ['A. Pure black', 'B. Dark grey', 'C. Grey panel', 'No clear difference'],
+    function (v) {
+      record('contrast', 'most_readable', v, null);
+      ask('Did the dark grey background (B) visibly wash out the real world compared with pure black (A)?',
+        ['Yes, clearly greyed the view', 'Slightly', 'No difference I could see'],
+        function (v2) {
+          record('contrast', 'grey_washout', v2, null);
+          goto('transparency', {});
+        }, 'Test 7');
+    }, 'Test 7');
+};
+
+SCREENS.transparency = function () {
+  render('<div style="position:absolute;left:14px;top:14px;font-size:18px;color:#00E5FF">black = transparent?</div>' +
+    '<div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+    btn('Answer', function () {
+      ask('Apart from that one cyan line, is the lens clear enough to see the room normally?',
+        ['Completely clear', 'Slight haze or glow', 'Noticeably clouded', 'Cannot tell'],
+        function (v) {
+          record('contrast', 'black_transparency', v, null);
+          goto('menu', { focus: 'contrast' });
+        }, 'Test 7 - transparency');
+    }, { id: 'answer' }) + '</div>');
+};
+
+/* ------------------------------------------------------------------ *
+ * 13. Results, key log, device info
+ * ------------------------------------------------------------------ */
+
+SCREENS.results = function () {
+  var h = '<div class="hdr">Results &nbsp;&middot;&nbsp; ' + DB.results.length + ' recorded, session ' + DB.sessions + '</div><div class="rows">' +
+    btn('Read results', function () { goto('resultPage', { page: 0 }); }, { sub: 'photograph these', id: 'read' }) +
+    btn('Key log', function () { goto('keylog', {}); }, { sub: 'last presses', id: 'keys' }) +
+    btn('Device and self-check', function () { goto('device', {}); }, { sub: 'and erase', id: 'device' }) +
+    btn('JSON dump', function () { openJson(); }, { sub: 'desktop', id: 'json' }) +
+    btn('Back to menu', function () { goto('menu', { focus: 'results' }); }, { id: 'back' });
+  render(h + '</div>');
+};
+
+function resultLines() {
+  return DB.results.map(function (r) {
+    var line = r.test + '/' + r.k + ': ' + r.v;
+    if (r.x) {
+      if (r.x.reactionMs != null) line += ' (' + r.x.reactionMs + 'ms)';
+      if (r.x.presses != null) line += ' (' + r.x.presses + 'p/' + r.x.minimum + ')';
+      if (r.x.wakeLock) line += ' [wl ' + r.x.wakeLock + ']';
+      if (r.x.maxTickGapMs) line += ' [gap ' + r.x.maxTickGapMs + 'ms]';
+    }
+    return line;
+  });
+}
+
+SCREENS.resultPage = function (p) {
+  var lines = resultLines(), per = 8;
+  var pages = Math.max(1, Math.ceil(lines.length / per));
+  var page = Math.min(p.page, pages - 1);
+  var slice = lines.slice(page * per, page * per + per);
+
+  var h = '<div class="hdr">Results ' + (page + 1) + '/' + pages + ' &middot; photograph this</div>' +
+    '<div style="font-size:19px;line-height:1.5;color:#DCE9EE;height:270px;overflow:hidden">' +
+    (slice.length ? slice.map(esc).join('<br>') : 'Nothing recorded yet.') + '</div>' +
+    '<div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+    btn('Next page', function () { goto('resultPage', { page: (page + 1) % pages }); }, { id: 'next' }) +
+    btn('Back', function () { goto('results', {}); }, { id: 'back' }) + '</div>';
+  render(h);
+};
+
+SCREENS.keylog = function () {
+  var last = DB.keylog.slice(-8);
+  var prev = null;
+  var body = last.map(function (e) {
+    var gap = prev ? (e.rt - prev.rt) : 0;
+    prev = e;
+    return esc(e.k) + '  +' + gap + 'ms' + (e.d != null ? '  held ' + e.d + 'ms' : '') + (e.rep ? '  repeat' : '');
+  }).join('<br>');
+  var odd = {};
+  DB.keylog.forEach(function (e) {
+    if (!(e.k in NAV) && e.k !== 'Enter') odd[e.k] = (odd[e.k] || 0) + 1;
+  });
+  var oddList = Object.keys(odd).map(function (k) { return k + ' x' + odd[k]; }).join(', ');
+
+  var h = '<div class="hdr">Key log &middot; ' + DB.keylog.length + ' presses this device</div>' +
+    '<div style="font-size:19px;line-height:1.5;color:#DCE9EE;height:230px;overflow:hidden">' + (body || 'nothing yet') + '</div>' +
+    '<div class="sm">Non-standard keys seen: ' + (oddList ? '<span class="warn">' + esc(oddList) + '</span>' : 'none') + '</div>' +
+    '<div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+    btn('Refresh', function () { goto('keylog', {}); }, { id: 'refresh' }) +
+    btn('Back', function () { goto('results', {}); }, { id: 'back' }) + '</div>';
+  render(h);
+};
+
+SCREENS.device = function () {
+  var d = DB.device || {};
+  var drops = DB.events.filter(function (e) { return e.type === 'double_select_dropped'; }).length;
+  var dead = DB.events.filter(function (e) { return e.type === 'select_with_no_focus'; }).length;
+  var shorts = DB.events.filter(function (e) { return e.type === 'focusable_too_short'; }).length;
+
+  var h = '<div class="hdr">Device and self-check</div>' +
+    '<div style="font-size:17px;line-height:1.45;color:#DCE9EE;height:224px;overflow:hidden">' +
+    'viewport ' + esc(d.inner || '?') + ' &middot; screen ' + esc(d.screen || '?') + ' &middot; dpr ' + esc(String(d.dpr)) + '<br>' +
+    'AudioContext ' + (d.audioContext ? 'present' : '<span class="bad">missing</span>') +
+    ' &middot; speechSynthesis ' + (d.speech ? 'present' : '<span class="bad">missing</span>') + '<br>' +
+    'wakeLock ' + (d.wakeLock ? 'present' : '<span class="bad">missing</span>') +
+    ' &middot; vibrate ' + (d.vibrate ? 'present' : 'missing') + '<br>' +
+    'localStorage ' + (DB.saveError ? '<span class="bad">' + esc(DB.saveError) + '</span>' : 'ok') + '<br>' +
+    '<br>smallest focusable seen: <span class="' + (DB.minFocusablePx !== null && DB.minFocusablePx < 88 ? 'bad' : 'cy') + '">' +
+    esc(String(DB.minFocusablePx)) + 'px</span> (' + shorts + ' under 88)<br>' +
+    'double selects dropped: ' + drops + '<br>' +
+    'selects with no focus: ' + dead + '<br><br>' +
+    '<span class="sm">' + esc((d.ua || '').slice(0, 120)) + '</span>' +
+    '</div><div class="rows" style="position:absolute;left:14px;right:14px;bottom:14px">' +
+    btn('Back', function () { goto('results', {}); }, { id: 'back' }) +
+    btn('Clear all data', function () { goto('clear', {}); }, { id: 'clear' }) + '</div>';
+  render(h);
+};
+
+SCREENS.clear = function () {
+  ask('Erase every recorded result and the key log? There is no undo.',
+    ['No, keep everything', 'Yes, erase it all'],
+    function (v) {
+      if (v.charAt(0) === 'Y') {
+        try { localStorage.removeItem(STORE); } catch (e) {}
+        DB = blankDb();
+        DB.device = deviceInfo();
+        save();
+      }
+      goto('results', {});
+    }, 'Clear data');
+};
+
+var jsonOpen = false;
+var jsonEl = document.getElementById('json');
+
+function openJson() {
+  jsonOpen = true;
+  var text = JSON.stringify(DB, null, 1);
+  jsonEl.textContent = text;
+  jsonEl.style.display = 'block';
+  try { if (window.console && console.log) console.log('[setpace-probe]', text); } catch (e) {}
+  try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text); } catch (e) {}
+}
+function closeJson() { jsonOpen = false; jsonEl.style.display = 'none'; }
+
+/* ------------------------------------------------------------------ *
+ * 14. Boot
+ * ------------------------------------------------------------------ */
+
+function deviceInfo() {
+  return {
+    ua: navigator.userAgent,
+    inner: window.innerWidth + 'x' + window.innerHeight,
+    screen: (window.screen ? screen.width + 'x' + screen.height : '?'),
+    dpr: window.devicePixelRatio,
+    audioContext: !!(window.AudioContext || window.webkitAudioContext),
+    speech: 'speechSynthesis' in window,
+    wakeLock: 'wakeLock' in navigator,
+    vibrate: !!navigator.vibrate,
+    lang: navigator.language,
+    at: Date.now()
+  };
+}
+
+if (!DB.device) DB.device = deviceInfo();
+DB.lastBoot = deviceInfo();
+save();
+logEvent('boot', { sessions: DB.sessions });
+
+window.addEventListener('pagehide', save);
+window.addEventListener('beforeunload', save);
+
+// Exposed for the desktop console only. Never used by the page itself.
+window.PROBE = { db: function () { return DB; }, dump: function () { openJson(); return DB; } };
+
+if (DB.pending && DB.pending.test === 'sleep') goto('sleepResume', {});
+else goto('menu', {});
+
+})();
+</script>
+</body>
+</html>

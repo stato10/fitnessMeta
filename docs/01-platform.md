@@ -17,7 +17,7 @@ Both build paths are in Developer Preview.
 |---|---|---|
 | Display | Monocular, right lens only, 600x600 px, ~20 deg FOV, additive waveguide | Roughly 3-4 readable lines. Black renders as fully transparent. |
 | Camera | 12MP stills, 1440x1920 video @30fps | Native path only. Points forward, away from the wearer. |
-| Audio | 2 open-ear speakers, 5-mic array | Native path only. See 1.4, this is the single biggest constraint on this project. |
+| Audio | 2 open-ear speakers, 5-mic array | Works from a Web App in practice (verified on-device, see 1.4). Meta docs disagree. |
 | Input | Meta Neural Band (surface EMG) + captouch strip on the temple | Becomes arrow keys and Enter. Nothing else. |
 | Link | Bluetooth to the phone; Wi-Fi 6; 32 GB storage | Web Apps load over HTTPS from a public URL. |
 | Battery | ~6h mixed use, ~24h with the case | Bursty display use is fine, continuous sensing is not. |
@@ -49,8 +49,12 @@ Supported:
 | Location | `navigator.geolocation`, sourced from the paired phone. |
 | Storage | `localStorage` and `sessionStorage`, 5 MB each. |
 
-Explicitly **not** supported: camera, microphone, **audio output**, text input,
-offline support, notifications, back navigation, and any form of cursor.
+Explicitly **not** supported: camera, microphone, text input, offline support,
+notifications, back navigation, and any form of cursor.
+
+Audio output belongs on that list according to Meta's Web Apps overview, but it
+does not appear in the capabilities table itself, and there is evidence it works
+anyway. See 1.4.
 
 Required markup:
 
@@ -66,23 +70,37 @@ body { width: 600px; height: 600px; overflow: hidden; }
 Documented UI minimums: body text at least 16 px, primary content 20-24 px, and
 focusable elements at least **88 px tall**.
 
-## 1.4 The audio problem
+## 1.4 Audio — verified on device
 
-Web Apps cannot play sound. The glasses have excellent open-ear speakers, but
-that capability is exposed only through the native DAT path over Bluetooth.
+Meta's Web Apps material says Web Apps cannot play sound. That claim is wrong
+for this hardware in Developer Preview, or at least incomplete.
 
-This matters more here than it would for most apps. The obvious design for a
-rest timer is a tone when rest ends, precisely because it reaches the user when
-they are not looking at the display. That option does not exist.
+**On-device probe result (user, 2026-07-31):** sound from the probe was audible
+through the glasses speakers. Treat WebAudio (and whatever path the probe used)
+as available for the rest-over tone.
 
-The resolution is in [section 2.7](02-product.md), and it turns out the additive
-display gives a workable substitute: a pure-black frame is transparent, so a
-sudden bright full-viewport pulse is genuinely conspicuous in peripheral vision
-in a way a phone screen in a pocket is not. This is the main thing to validate
-on real hardware early.
+Re-check after major firmware or Meta AI updates — the docs still disagree, so
+the capability may regress. Until then, audio is the primary rest cue.
 
-If strict audio pacing ever becomes a requirement, that is the trigger to move
-to the DAT path, not a reason to start there.
+A bright full-viewport flash remains the secondary cue for noisy gyms
+([section 2.7](02-product.md)). Expanding-circle / small-shape flashes were
+easy to miss; full-screen flash was noticed.
+
+## 1.4a Display sleep — verified on device
+
+**On-device probe result (user, 2026-07-31):** the display did turn off during
+idle / long wait. Do not design as if the lens stays lit for a full rest.
+
+Consequences:
+
+- Timers stay wall-clock deadlines ([section 3.4](03-architecture.md)), so the
+  remaining time is correct the moment the display wakes.
+- On `visibilitychange` / resume, re-render immediately and fire the rest-over
+  tone if the deadline already passed while asleep.
+- Do not rely on the visual countdown alone. The tone (and a secondary flash
+  when waking into an overdue rest) is the load-bearing signal.
+- Keep trying `wakeLock` if present, but do not depend on it — sleep still
+  happened in the probe session.
 
 ## 1.5 The input model in full
 
@@ -98,6 +116,11 @@ Arrow keys move focus between focusable elements; `Enter` activates the focused
 one. Meta's sample code also maps `Escape` to `history.back()`, but back
 navigation is on the unsupported list, so **nothing in this app may depend on a
 back gesture**. Every action must be reachable as a visible focusable element.
+
+The middle pinch is reserved by the OS: it opens a system menu offering Restart,
+Resume and Permissions ([section 6.7](06-setup.md)). It never reaches the page,
+so nothing may be bound to it. It is also the reload control for the whole
+development loop.
 
 Two consequences worth stating plainly, because they drive the UI design:
 

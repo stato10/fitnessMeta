@@ -42,7 +42,9 @@ The constraints that hurt other app ideas mostly do not bite here.
 - **Hands are genuinely occupied.** The user is holding a barbell. This is a
   real instance of the problem the hardware solves, not a contrived one.
 
-The one place the hardware fights back is audio, covered in 2.7.
+The one place the hardware fights back is display sleep during rest: the
+countdown may not stay on screen, so the end-of-rest tone (with a flash as
+backup) is load-bearing. Covered in 2.7.
 
 ## 2.4 The core loop
 
@@ -105,26 +107,22 @@ not a runtime truncation. A plan that cannot be displayed should fail in CI, not
 on the glasses. Runtime ellipsis truncation exists only as a guard for
 user-entered exercise names.
 
-## 2.7 Signalling the end of rest without sound
+## 2.7 Signalling the end of rest
 
-Web Apps cannot play audio ([section 1.4](01-platform.md)), so the natural
-design of a tone at the end of rest is unavailable.
+Rest ends while the user is often not looking, and the display may already be
+asleep ([section 1.4a](01-platform.md)). Both are verified on device.
 
-The substitute uses a property of the additive display: black is fully
-transparent, so the lens is normally clear, and a sudden bright full-viewport
-frame is genuinely conspicuous in peripheral vision. A phone buzzing in a pocket
-is easy to miss; a lens that abruptly lights up is not.
+**Primary cue: a short tone.** Audio from a Web App is audible on the glasses
+([section 1.4](01-platform.md)). Fire it when rest ends, including when the
+deadline passed while the page was hidden — play on the next resume if needed.
 
-The cue is three bright pulses over roughly 1.2 seconds, then the next-set frame
-settles in. Motion in peripheral vision is banned during `SetActive` for safety
-reasons, but rest is exactly when the user is not under load, so an attention-
-grabbing animation is appropriate there and nowhere else.
+**Secondary cue: a full-viewport bright flash.** Noticed in the probe; small
+shapes (e.g. expanding circle) were not. Use a solid full-screen pulse only,
+about three frames over ~1.2 s, then settle on the next-set frame. Skip the
+pulse if more than ~30 s have passed since the deadline (stale wake-up).
 
-**This is the single biggest open risk in the product and the first thing to
-test on hardware.** If a bright pulse turns out not to reliably catch attention,
-the honest options are to accept that the user must glance at the lens, or to
-move to the DAT path purely to get audio. Do not build the rest of the app
-before answering this.
+Tone + flash together cover a noisy gym and a sleeping display. Motion during
+`SetActive` stays banned.
 
 ## 2.8 What this app does not do
 

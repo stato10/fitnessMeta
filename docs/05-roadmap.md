@@ -3,39 +3,35 @@
 Ordered so each phase is independently verifiable, and so the two questions that
 could change the product get answered before most of the work is done.
 
-## Phase 0 — Hardware spike
+## Phase 0 — Hardware probe
 
-A throwaway page that does three things: fills the viewport with a bright pulse
-on a timer, renders text at the planned sizes, and puts three 88 px focusable
-buttons on screen.
+Done on real glasses (2026-07-31). Audio works; display sleeps; full-screen
+flash works; circle flash does not. Probe moved to [`probe.html`](../probe.html);
+checklist in [section 0](00-probe.md).
 
-Answers the open questions in [section 4.5](04-edge-cases.md), above all whether
-a visual pulse can replace the rest-over tone the platform will not give us.
+Answers the open questions in [section 4.5](04-edge-cases.md) in seven tests:
+whether the platform can play a sound at all, whether a visual pulse works if it
+cannot, whether the display survives a three-minute rest, and four smaller
+questions about selection, legibility, focus and contrast.
 
 Needs: glasses, a paired phone with Developer Mode enabled in the Meta AI app,
-and any HTTPS host.
+and any HTTPS host. [Section 6](06-setup.md) is the setup path.
 
-Do this first. It is a few hours of work and it de-risks the product.
+Run it first. It is about 40 minutes of wearing the glasses and it de-risks the
+product.
 
-## Phase 1 — Core
+## Phase 1 — First playable build (in progress)
 
-`src/core/` : types, `validatePlan`, `reducer`, `render`, tick scheduler.
+Shipped as root [`index.html`](../index.html): one hardcoded Push A plan, the
+phase machine (Idle → SetReady → SetActive → Resting → Summary), wall-clock
+rest, tone + full-screen flash on rest-over, keyed DOM focus, and
+`localStorage` resume. Extracting pure TypeScript + table tests comes next
+without changing the on-glasses behaviour.
 
-Pure TypeScript. No DOM, no `localStorage`, no `Date.now()`. Time arrives as a
-`now: () => number` argument.
+## Phase 2 — DOM adapter / polish
 
-Done when the state machine from [section 3.6](03-architecture.md) runs under
-unit tests and every case in [section 4](04-edge-cases.md) has a passing table
-test. A correctness milestone with nothing to look at.
-
-## Phase 2 — DOM adapter
-
-`src/adapters/dom/` : the keyed diff and focus preservation from
-[section 3.8](03-architecture.md), D-pad focus handling, `localStorage`
-persistence, and the rest-over pulse.
-
-Developed in Chrome at 600x600 with a keyboard, which is the same input the
-glasses deliver. Focus survival across ticks is the acceptance test.
+Tighten focus survival, adjust-flow edge cases, and gym-tuned rest defaults
+after a real workout on glasses.
 
 ## Phase 3 — Plans and validation
 
@@ -66,7 +62,7 @@ that adapter.
 
 | Phase | Question it answers | Needs hardware |
 |---|---|---|
-| 0 | Can a visual cue replace sound, and does the display stay awake | Yes |
+| 0 | Is there sound at all, can a visual cue replace it, does the display stay awake | Yes |
 | 1 | Is the logic correct under every edge case | No |
 | 2 | Does it feel right, and does focus survive the countdown | No |
 | 3 | Is the content model expressive enough for real workouts | No |

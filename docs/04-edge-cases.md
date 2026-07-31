@@ -111,16 +111,17 @@ sets.
 **Adding a set from the summary.** Appends a copy of the last `PlannedSet` to a
 session-local overlay, never to the stored plan.
 
-## 4.5 Hardware validation, to do before building the rest
+## 4.5 Hardware validation results (on-device, 2026-07-31)
 
-These cannot be answered from documentation and must be tested on real glasses.
-They are listed here because two of them could change the product.
-
-1. **Does a bright full-viewport pulse reliably catch attention when the user is
-   not looking at the display?** The entire rest-timer value proposition depends
-   on this, and there is no audio fallback ([section 2.7](02-product.md)).
-2. **Does the display sleep or dim during a long rest, and does the app keep
-   running?** If it sleeps, the pulse never fires.
-3. **Is 88 px tall enough to select reliably while breathing hard?** The
-   documented minimum is a minimum, not a recommendation.
-4. **How long does a full workout run before battery becomes an issue?**
+1. **Audio from a Web App** — **heard.** Primary rest cue is a tone.
+2. **Full-viewport flash** — **noticed.** Expanding circle / small shape —
+   **not noticed.** Secondary cue = full-screen flash only.
+3. **Display sleep** — **screen turned off** during idle. Design for sleep;
+   wall-clock timers + tone on resume if rest already ended.
+4. **Battery over a full workout** — still open (needs a real session).
+5. **88 px targets while breathing hard** — not separately logged; treat as OK
+   for v1 unless gym use shows misses.
+6. **Text sizes in gym / daylight** — user reported the UI was generally
+   visible ("saw everything"); keep the [2.6](02-product.md) budget.
+7. **1 Hz re-render vs focus** — still worth confirming in the first workout
+   build; keep keyed DOM updates as specified.
