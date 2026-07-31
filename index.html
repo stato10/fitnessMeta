@@ -364,6 +364,126 @@
         "Knees track toes",
         "Stand tall"
       ]
+    },
+    gobletsquat: {
+      id: "gobletsquat", name: "Goblet squat", unit: "kg",
+      cue: "Dumbbell · at chest",
+      demo: "gobletsquat",
+      steps: [
+        "Hold DB at chest",
+        "Feet shoulder wide",
+        "Sit hips back",
+        "Elbows inside knees",
+        "Drive up tall"
+      ]
+    },
+    bbbench: {
+      id: "bbbench", name: "Bench press", unit: "kg",
+      cue: "Barbell · flat bench",
+      demo: "bbbench",
+      steps: [
+        "Lie · feet planted",
+        "Grip outside shoulders",
+        "Unrack over chest",
+        "Lower to mid chest",
+        "Press up control"
+      ]
+    },
+    bentrow: {
+      id: "bentrow", name: "Bent-over row", unit: "kg",
+      cue: "Barbell · hinge",
+      demo: "bentrow",
+      steps: [
+        "Hinge · back flat",
+        "Bar hangs at shins",
+        "Pull to lower ribs",
+        "Squeeze shoulder blades",
+        "Lower slow"
+      ]
+    },
+    dbohp: {
+      id: "dbohp", name: "DB shoulder press", unit: "kg",
+      cue: "Dumbbells · seated",
+      demo: "dbohp",
+      steps: [
+        "Sit · core braced",
+        "DBs at shoulders",
+        "Press up overhead",
+        "Do not flare ribs",
+        "Lower with control"
+      ]
+    },
+    dbcurl: {
+      id: "dbcurl", name: "DB curl", unit: "kg",
+      cue: "Dumbbells · stand",
+      demo: "dbcurl",
+      steps: [
+        "Stand · elbows in",
+        "Palms forward",
+        "Curl to shoulders",
+        "Keep elbows still",
+        "Lower slow"
+      ]
+    },
+    rdl: {
+      id: "rdl", name: "Romanian DL", unit: "kg",
+      cue: "Barbell · soft knees",
+      demo: "rdl",
+      steps: [
+        "Soft knees · brace",
+        "Hinge hips back",
+        "Bar close to legs",
+        "Feel hamstrings",
+        "Stand squeeze glutes"
+      ]
+    },
+    dblunge: {
+      id: "dblunge", name: "DB lunge", unit: "kg",
+      cue: "Dumbbells · at sides",
+      demo: "dblunge",
+      steps: [
+        "Step one foot forward",
+        "Both knees ~90 deg",
+        "Front knee tracks toe",
+        "Push back to stand",
+        "Alternate legs"
+      ]
+    },
+    dbincpress: {
+      id: "dbincpress", name: "DB incline press", unit: "kg",
+      cue: "Dumbbells · incline",
+      demo: "dbincpress",
+      steps: [
+        "Bench slight incline",
+        "DBs at chest line",
+        "Press up and in",
+        "Stop short of bang",
+        "Lower slow"
+      ]
+    },
+    kickback: {
+      id: "kickback", name: "Tricep kickback", unit: "kg",
+      cue: "Dumbbell · hinge",
+      demo: "kickback",
+      steps: [
+        "Hinge · elbow high",
+        "Upper arm still",
+        "Extend forearm back",
+        "Squeeze tricep",
+        "Return slow"
+      ]
+    },
+    dbcalf: {
+      id: "dbcalf", name: "DB calf raise", unit: "kg",
+      cue: "Dumbbells · stand",
+      demo: "dbcalf",
+      steps: [
+        "Hold DBs at sides",
+        "Rise onto toes",
+        "Pause at top",
+        "Lower heels slow",
+        "Keep ankles steady"
+      ]
     }
   };
 
@@ -430,6 +550,57 @@
         .concat(setsOf("legcurl", 12, 25, 3, { mid: 75, last: 75 }))
         .concat(setsOf("legext", 12, 25, 3, { mid: 75, last: 75 }))
         .concat(setsOf("calfraise", 15, 30, 3, { mid: 60, last: 60 }))
+        .concat(setsOf("bwsquat", 12, null, 2, { mid: 60, last: 0 }))
+    },
+    fullbody_free: {
+      id: "fullbody_free",
+      name: "Full body · free",
+      exercises: {
+        gobletsquat: EX.gobletsquat,
+        bbbench: EX.bbbench,
+        bentrow: EX.bentrow,
+        dbohp: EX.dbohp,
+        dbcurl: EX.dbcurl,
+        plank: EX.plank
+      },
+      sets: []
+        .concat(setsOf("gobletsquat", 10, 16, 2, { mid: 90, last: 90 }))
+        .concat(setsOf("bbbench", 8, 30, 2, { mid: 90, last: 90 }))
+        .concat(setsOf("bentrow", 10, 30, 2, { mid: 75, last: 75 }))
+        .concat(setsOf("dbohp", 10, 10, 2, { mid: 75, last: 75 }))
+        .concat(setsOf("dbcurl", 12, 8, 2, { mid: 60, last: 60 }))
+        .concat(setsOf("plank", 30, null, 2, { mid: 45, last: 0 }))
+    },
+    upper_free: {
+      id: "upper_free",
+      name: "Upper · free",
+      exercises: {
+        bbbench: EX.bbbench,
+        dbohp: EX.dbohp,
+        dbincpress: EX.dbincpress,
+        kickback: EX.kickback
+      },
+      sets: []
+        .concat(setsOf("bbbench", 8, 35, 3, { mid: 90, last: 90 }))
+        .concat(setsOf("dbohp", 10, 10, 3, { mid: 90, last: 75 }))
+        .concat(setsOf("dbincpress", 10, 14, 3, { mid: 75, last: 75 }))
+        .concat(setsOf("kickback", 12, 6, 3, { mid: 60, last: 0 }))
+    },
+    legs_free: {
+      id: "legs_free",
+      name: "Legs · free",
+      exercises: {
+        gobletsquat: EX.gobletsquat,
+        rdl: EX.rdl,
+        dblunge: EX.dblunge,
+        dbcalf: EX.dbcalf,
+        bwsquat: EX.bwsquat
+      },
+      sets: []
+        .concat(setsOf("gobletsquat", 10, 16, 3, { mid: 90, last: 90 }))
+        .concat(setsOf("rdl", 8, 40, 3, { mid: 90, last: 90 }))
+        .concat(setsOf("dblunge", 10, 10, 3, { mid: 75, last: 75 }))
+        .concat(setsOf("dbcalf", 15, 12, 3, { mid: 60, last: 60 }))
         .concat(setsOf("bwsquat", 12, null, 2, { mid: 60, last: 0 }))
     }
   };
@@ -501,6 +672,7 @@
     return {
       schemaVersion: 2,
       planId: null,
+      pendingGoal: null,
       startedAt: null,
       cursor: 0,
       logged: [],
@@ -520,6 +692,7 @@
     return {
       schemaVersion: 2,
       planId: planId,
+      pendingGoal: null,
       startedAt: t,
       cursor: 0,
       logged: [],
@@ -533,6 +706,11 @@
       paused: false,
       pendingCue: null
     };
+  }
+
+  function resolvePlanId(goal, equip) {
+    if (equip === "free") return goal + "_free";
+    return goal;
   }
 
   function enter(state, phase, t) {
@@ -634,13 +812,22 @@
       return state;
     }
 
-    if (state.paused && event.t !== "SELECT_PLAN") return state;
+    if (state.paused && event.t !== "SELECT_PLAN" && event.t !== "SELECT_EQUIP") return state;
 
     if (event.t === "SELECT_PLAN") {
-      if (!PLANS[event.planId]) return state;
-      plan = clonePlan(event.planId);
-      resetPlanTo(event.planId);
-      return freshSession(event.planId, t);
+      var goal = event.planId;
+      if (goal !== "fullbody" && goal !== "upper" && goal !== "legs") return state;
+      state.pendingGoal = goal;
+      state.planId = null;
+      return enter(state, "EquipSelect", t);
+    }
+
+    if (event.t === "SELECT_EQUIP") {
+      if (state.phase !== "EquipSelect" || !state.pendingGoal) return state;
+      var pid = resolvePlanId(state.pendingGoal, event.equip);
+      if (!PLANS[pid]) return state;
+      resetPlanTo(pid);
+      return freshSession(pid, t);
     }
 
     if (event.t === "TEACH_NEXT") {
@@ -756,6 +943,24 @@
           { id: "plan_full", label: "Full body", event: { t: "SELECT_PLAN", planId: "fullbody" } },
           { id: "plan_upper", label: "Upper push", event: { t: "SELECT_PLAN", planId: "upper" } },
           { id: "plan_legs", label: "Legs", event: { t: "SELECT_PLAN", planId: "legs" } }
+        ]
+      };
+    }
+
+    if (state.phase === "EquipSelect") {
+      var g = state.pendingGoal || "fullbody";
+      var gLabel = g === "upper" ? "Upper" : (g === "legs" ? "Legs" : "Full body");
+      return {
+        eyebrow: gLabel,
+        heading: "Equipment?",
+        hero: "",
+        meta: "Machines or free weights",
+        demo: null,
+        progress: null,
+        mood: "home",
+        actions: [
+          { id: "equip_m", label: "Machines", event: { t: "SELECT_EQUIP", equip: "machine" } },
+          { id: "equip_f", label: "Free weights", event: { t: "SELECT_EQUIP", equip: "free" } }
         ]
       };
     }
@@ -1211,6 +1416,155 @@
     arrow(ctx, 210, 80 + a * 40, 210, 130);
   }
 
+  function drawGobletSquat(ctx, p) {
+    drawBwSquat(ctx, p);
+    var a = wave(p);
+    var hipY = 100 + a * 35;
+    var headY = 45 + a * 25;
+    strokeHi(ctx, 4);
+    // dumbbell at chest
+    line(ctx, 128, headY + 28, 152, headY + 28);
+    line(ctx, 140, headY + 22, 140, headY + 34);
+  }
+
+  function drawBbBench(ctx, p) {
+    var a = wave(p);
+    var barY = 95 + a * 28;
+    strokeMute(ctx, 3);
+    line(ctx, 40, 150, 240, 150); // bench
+    line(ctx, 70, 150, 70, 195);
+    line(ctx, 210, 150, 210, 195);
+    strokeCyan(ctx, 4);
+    head(ctx, 100, 125, 10);
+    line(ctx, 110, 130, 180, 130); // torso on bench
+    line(ctx, 150, 130, 140, 150);
+    line(ctx, 170, 130, 185, 150);
+    // arms to bar
+    line(ctx, 130, 130, 115, barY);
+    line(ctx, 170, 130, 185, barY);
+    strokeHi(ctx, 4);
+    line(ctx, 90, barY, 210, barY);
+    arrow(ctx, 230, 130, 230, 100);
+  }
+
+  function drawBentRow(ctx, p) {
+    var a = wave(p);
+    var pull = a * 36;
+    strokeMute(ctx, 2);
+    line(ctx, 40, 200, 240, 200);
+    strokeCyan(ctx, 4);
+    head(ctx, 90, 70, 11);
+    line(ctx, 95, 82, 150, 120); // hinged torso
+    line(ctx, 150, 120, 130, 185);
+    line(ctx, 150, 120, 175, 185);
+    var barY = 155 - pull;
+    line(ctx, 150, 110, 150, barY);
+    strokeHi(ctx, 4);
+    line(ctx, 110, barY, 190, barY);
+    arrow(ctx, 210, 150, 210, 115);
+  }
+
+  function drawDbOhp(ctx, p) {
+    var a = wave(p);
+    var up = a * 45;
+    strokeMute(ctx, 3);
+    line(ctx, 70, 175, 190, 175);
+    strokeCyan(ctx, 4);
+    head(ctx, 130, 70, 11);
+    line(ctx, 130, 81, 130, 130);
+    line(ctx, 130, 130, 110, 175);
+    line(ctx, 130, 130, 150, 175);
+    var hy = 85 - up;
+    line(ctx, 130, 100, 105, hy);
+    line(ctx, 130, 100, 155, hy);
+    strokeHi(ctx, 4);
+    line(ctx, 98, hy, 112, hy);
+    line(ctx, 148, hy, 162, hy);
+    arrow(ctx, 185, 90, 185, 50);
+  }
+
+  function drawDbCurl(ctx, p) {
+    drawCableCurl(ctx, p);
+  }
+
+  function drawRdl(ctx, p) {
+    var a = wave(p);
+    // a=0 stand, a=1 hinged
+    var hipY = 110 + a * 15;
+    var headY = 45 + a * 35;
+    var barY = 160 + a * 25;
+    strokeMute(ctx, 2);
+    line(ctx, 50, 200, 230, 200);
+    strokeCyan(ctx, 4);
+    head(ctx, 140 - a * 20, headY, 11);
+    line(ctx, 140 - a * 18, headY + 12, 150, hipY);
+    line(ctx, 150, hipY, 125, 190);
+    line(ctx, 150, hipY, 170, 190);
+    line(ctx, 150, hipY, 150, barY);
+    strokeHi(ctx, 4);
+    line(ctx, 115, barY, 185, barY);
+    arrow(ctx, 210, 100, 210, 145);
+  }
+
+  function drawDbLunge(ctx, p) {
+    var a = wave(p);
+    var drop = a * 25;
+    strokeMute(ctx, 2);
+    line(ctx, 40, 200, 240, 200);
+    strokeCyan(ctx, 4);
+    head(ctx, 130, 50 + drop * 0.4, 11);
+    line(ctx, 130, 62 + drop * 0.4, 130, 110 + drop * 0.3);
+    // front leg
+    line(ctx, 130, 110 + drop * 0.3, 95, 155 + drop * 0.2);
+    line(ctx, 95, 155 + drop * 0.2, 85, 195);
+    // back knee drops
+    line(ctx, 130, 110 + drop * 0.3, 170, 160 + drop);
+    line(ctx, 170, 160 + drop, 185, 195);
+    strokeHi(ctx, 3);
+    line(ctx, 118, 115, 118, 135); // DB
+    line(ctx, 142, 115, 142, 135);
+    arrow(ctx, 210, 100, 210, 140);
+  }
+
+  function drawDbIncPress(ctx, p) {
+    drawIncline(ctx, p);
+    var a = wave(p);
+    var push = a * 38;
+    var hx = 130 + push * 0.7;
+    var hy = 100 - push * 0.55;
+    strokeHi(ctx, 3);
+    line(ctx, hx - 6, hy, hx + 6, hy); // DB heads
+  }
+
+  function drawKickback(ctx, p) {
+    var a = wave(p);
+    var ext = a * 1.1;
+    strokeMute(ctx, 2);
+    line(ctx, 40, 200, 240, 200);
+    strokeCyan(ctx, 4);
+    head(ctx, 90, 75, 11);
+    line(ctx, 95, 86, 145, 120); // hinge
+    line(ctx, 145, 120, 125, 185);
+    line(ctx, 145, 120, 170, 185);
+    var elbowX = 155, elbowY = 105;
+    line(ctx, 145, 100, elbowX, elbowY);
+    var hx = elbowX + Math.cos(-0.2 + ext) * 40;
+    var hy = elbowY + Math.sin(-0.2 + ext) * 40;
+    line(ctx, elbowX, elbowY, hx, hy);
+    strokeHi(ctx, 3);
+    line(ctx, hx - 6, hy, hx + 6, hy);
+    arrow(ctx, 200, 130, 210, 100);
+  }
+
+  function drawDbCalf(ctx, p) {
+    drawCalfRaise(ctx, p);
+    strokeHi(ctx, 3);
+    var a = wave(p);
+    var lift = a * 28;
+    line(ctx, 125, 90 - lift * 0.2, 125, 115 - lift * 0.2);
+    line(ctx, 155, 90 - lift * 0.2, 155, 115 - lift * 0.2);
+  }
+
   var DEMO_DRAW = {
     legpress: drawLegPress,
     chestpress: drawChestPress,
@@ -1223,7 +1577,17 @@
     legcurl: drawLegCurl,
     legext: drawLegExt,
     calfraise: drawCalfRaise,
-    bwsquat: drawBwSquat
+    bwsquat: drawBwSquat,
+    gobletsquat: drawGobletSquat,
+    bbbench: drawBbBench,
+    bentrow: drawBentRow,
+    dbohp: drawDbOhp,
+    dbcurl: drawDbCurl,
+    rdl: drawRdl,
+    dblunge: drawDbLunge,
+    dbincpress: drawDbIncPress,
+    kickback: drawKickback,
+    dbcalf: drawDbCalf
   };
 
   function drawDemoFrame(kind, t0) {
@@ -1464,24 +1828,36 @@
     var prevPhase = state && state.phase;
     var t = now();
 
-    if (event.t === "SELECT_PLAN") {
-      resetPlanTo(event.planId);
-      state = freshSession(event.planId, t);
+    if (!state) {
+      state = idleState(t);
+    }
+
+    if (event.t === "SELECT_EQUIP") {
+      state = reducer(state, event, t, plan);
+      if (state.planId && PLANS[state.planId]) resetPlanTo(state.planId);
       lastFocusId = "primary";
+      if (state.pendingCue === "rest_over") {
+        state.pendingCue = null;
+        fireCue();
+      }
       save();
       paint();
       scheduleTick();
       return;
     }
 
-    if (!state) {
-      state = idleState(t);
+    if (event.t === "SELECT_PLAN") {
+      state = reducer(state, event, t, plan);
+      lastFocusId = "equip_m";
+      save();
+      paint();
+      scheduleTick();
+      return;
     }
+
     state = reducer(state, event, t, plan);
 
-    // SELECT_PLAN inside reducer also calls resetPlanTo
     if (state.planId && (!plan || plan.id !== state.planId) && PLANS[state.planId]) {
-      // keep plan in sync if reducer cloned path skipped
       if (plan.id !== state.planId) resetPlanTo(state.planId);
     }
 
@@ -1494,6 +1870,7 @@
       lastFocusId = "primary";
       if (state.phase === "Adjusting") lastFocusId = "minus";
       if (state.phase === "PlanSelect") lastFocusId = "plan_full";
+      if (state.phase === "EquipSelect") lastFocusId = "equip_m";
       save();
     } else if (event.t === "ADJUST_DELTA" || event.t === "CONFIRM" || event.t === "TEACH_NEXT") {
       save();
