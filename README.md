@@ -1,19 +1,35 @@
 # SetPace
 
-A strength-workout runner for Meta Ray-Ban Display glasses. It shows the current
-set and the rest countdown in the lens, so the user never picks up a phone
-between sets.
+A machine guide + leveled strength workouts for Meta Ray-Ban Display.
+Learn gym machines on the lens, then run sets and rest countdowns hands-free —
+not just another rep counter.
 
-Status: Playable v1 — plan picker + Teach demos + workout loop —
+Status: Playable — Train + Machines home —
 https://stato10.github.io/fitnessMeta/
+
+## vs simple rep counters
+
+Apps like GymRep are great at counting reps/sets and resting. SetPace is built
+for the other half of the gym floor: **what this machine is**, **how to set it
+up**, and **a short plan to follow** at Beginner or Intermediate weight.
+
+| | GymRep-style counters | SetPace |
+|---|---|---|
+| Focus | Rep / set tally | Machine guide + workout runner |
+| Rest timer | Often counts up | Counts down · tone + flash |
+| Teaching | Little / none | Stick demos + step cues |
+| Plans | Hardcoded list | Full body / Upper / Legs · leveled |
+| Machines | No library | Browsable machine guide → Train this |
 
 ## The idea in one paragraph
 
-The user picks what to train (Full body / Upper / Legs). Before each new
-exercise, SetPace shows a short looping stick-figure demo and step-by-step setup
-cues on the lens, then runs the set and rest countdown so they never pick up a
-phone between sets. Everything loads up front (no network video). There is no
-camera, no live form checking, and no automatic rep counting.
+Home offers **Train** or **Machines**. Train: pick a focus, level, and equipment,
+then SetPace teaches each new exercise (Beginner always; Intermediate can skip
+what you’ve already learned) and runs set + rest so you never pick up a phone.
+Machines: browse leg press, chest press, lat pulldown, and more — see what it
+trains, setup tips, and a canvas demo, then **Train this** for a quick 2-set
+block. Everything loads up front (no network video). No camera, no live form
+checking, no automatic rep counting.
 
 Built as a Meta **Web App**: standard HTML, CSS and JavaScript running
 standalone on the glasses, with no companion mobile app.
@@ -23,10 +39,10 @@ standalone on the glasses, with no companion mobile app.
 - **Workout (product):** https://stato10.github.io/fitnessMeta/
 - **Hardware probe:** https://stato10.github.io/fitnessMeta/probe.html
 
-On glasses: What today? → Teach (demo + Next steps) → Start set → Done → rest
-→ tone + flash → next set (Teach again when the exercise changes). Arrows move
-focus; Enter selects. Probe findings (audio works, display sleeps, full-screen
-flash works) are in [docs/04-edge-cases.md](docs/04-edge-cases.md) §4.5.
+On glasses: Home → Train (goal → level → equipment) or Machines (browse →
+detail → Train this). Arrows move focus; Enter selects. Middle pinch closes the
+app. Probe findings (audio works, display sleeps, full-screen flash works) are
+in [docs/04-edge-cases.md](docs/04-edge-cases.md) §4.5.
 
 ## Spec
 

@@ -223,6 +223,7 @@
   var EX = {
     legpress: {
       id: "legpress", name: "Leg press", unit: "kg",
+      trains: "Quads · glutes",
       cue: "Machine · adjust seat",
       demo: "legpress",
       steps: [
@@ -235,6 +236,7 @@
     },
     chestpress: {
       id: "chestpress", name: "Chest press", unit: "kg",
+      trains: "Chest · triceps",
       cue: "Machine · seat height",
       demo: "chestpress",
       steps: [
@@ -247,6 +249,7 @@
     },
     latpulldown: {
       id: "latpulldown", name: "Lat pulldown", unit: "kg",
+      trains: "Lats · upper back",
       cue: "Cable · high bar",
       demo: "latpulldown",
       steps: [
@@ -259,6 +262,7 @@
     },
     shpress: {
       id: "shpress", name: "Shoulder press", unit: "kg",
+      trains: "Shoulders · triceps",
       cue: "Machine · seat up",
       demo: "shpress",
       steps: [
@@ -271,6 +275,7 @@
     },
     cablecurl: {
       id: "cablecurl", name: "Cable curl", unit: "kg",
+      trains: "Biceps",
       cue: "Cable · low pulley",
       demo: "cablecurl",
       steps: [
@@ -283,6 +288,7 @@
     },
     plank: {
       id: "plank", name: "Plank", unit: "time",
+      trains: "Core",
       cue: "Floor · brace hard",
       demo: "plank",
       steps: [
@@ -295,6 +301,7 @@
     },
     incline: {
       id: "incline", name: "Incline press", unit: "kg",
+      trains: "Upper chest · shoulders",
       cue: "Machine · slight up",
       demo: "incline",
       steps: [
@@ -307,6 +314,7 @@
     },
     tripush: {
       id: "tripush", name: "Tricep pushdown", unit: "kg",
+      trains: "Triceps",
       cue: "Cable · high pulley",
       demo: "tripush",
       steps: [
@@ -319,6 +327,7 @@
     },
     legcurl: {
       id: "legcurl", name: "Leg curl", unit: "kg",
+      trains: "Hamstrings",
       cue: "Machine · pad calves",
       demo: "legcurl",
       steps: [
@@ -331,6 +340,7 @@
     },
     legext: {
       id: "legext", name: "Leg extension", unit: "kg",
+      trains: "Quads",
       cue: "Machine · pad shins",
       demo: "legext",
       steps: [
@@ -343,6 +353,7 @@
     },
     calfraise: {
       id: "calfraise", name: "Calf raise", unit: "kg",
+      trains: "Calves",
       cue: "Machine · toes edge",
       demo: "calfraise",
       steps: [
@@ -606,13 +617,89 @@
   };
 
   var STORE_KEY = "setpace_session_v2";
+  var TAUGHT_KEY = "setpace_taught_v1";
   var IDEMPOTENCY_MS = 250;
   var STALE_CUE_MS = 30000;
+  var LEVEL_MULT = { beginner: 1, intermediate: 1.35 };
+  var MACHINE_IDS = [
+    "legpress", "chestpress", "latpulldown", "shpress", "cablecurl",
+    "incline", "tripush", "legcurl", "legext", "calfraise"
+  ];
+  var MACHINE_DEFAULTS = {
+    legpress: { reps: 10, kg: 40 },
+    chestpress: { reps: 10, kg: 20 },
+    latpulldown: { reps: 10, kg: 25 },
+    shpress: { reps: 10, kg: 15 },
+    cablecurl: { reps: 12, kg: 12 },
+    incline: { reps: 10, kg: 20 },
+    tripush: { reps: 12, kg: 20 },
+    legcurl: { reps: 12, kg: 25 },
+    legext: { reps: 12, kg: 25 },
+    calfraise: { reps: 15, kg: 30 }
+  };
+  var PRE_WORKOUT = {
+    Home: 1, Idle: 1, PlanSelect: 1, LevelSelect: 1,
+    EquipSelect: 1, MachineList: 1, MachineDetail: 1
+  };
 
   function now() { return Date.now(); }
 
-  function clonePlan(id) {
-    return JSON.parse(JSON.stringify(PLANS[id]));
+  function loadTaughtEver() {
+    try {
+      var raw = localStorage.getItem(TAUGHT_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function persistTaught(id) {
+    if (!id) return;
+    var arr = loadTaughtEver();
+    if (arr.indexOf(id) === -1) {
+      arr.push(id);
+      try { localStorage.setItem(TAUGHT_KEY, JSON.stringify(arr)); } catch (e) {}
+    }
+  }
+
+  function scalePlanWeights(plan, level) {
+    var mult = LEVEL_MULT[level] || 1;
+    if (mult === 1) return plan;
+    for (var i = 0; i < plan.sets.length; i++) {
+      var kg = plan.sets[i].targetWeightKg;
+      if (kg == null) continue;
+      var scaled = Math.round(kg * mult);
+      if (scaled < 1) scaled = 1;
+      if (scaled > 250) scaled = 250;
+      plan.sets[i].targetWeightKg = scaled;
+    }
+    return plan;
+  }
+
+  function isMachinePlanId(id) {
+    return !!(id && id.indexOf("machine_") === 0);
+  }
+
+  function makeMachinePlan(exId, level) {
+    var ex = EX[exId];
+    if (!ex) return null;
+    var def = MACHINE_DEFAULTS[exId] || { reps: 10, kg: 20 };
+    var exercises = {};
+    exercises[exId] = JSON.parse(JSON.stringify(ex));
+    var plan = {
+      id: "machine_" + exId,
+      name: ex.name,
+      exercises: exercises,
+      sets: setsOf(exId, def.reps, def.kg, 2, { mid: 90, last: 0 })
+    };
+    return scalePlanWeights(plan, level || "beginner");
+  }
+
+  function clonePlan(id, level) {
+    if (isMachinePlanId(id)) {
+      return makeMachinePlan(id.slice(8), level);
+    }
+    var plan = JSON.parse(JSON.stringify(PLANS[id]));
+    return scalePlanWeights(plan, level || "beginner");
   }
 
   function exerciseOf(plan, set) {
@@ -657,7 +744,13 @@
     if (!set) return false;
     var ex = exerciseOf(plan, set);
     if (!ex || !ex.steps || !ex.steps.length) return false;
-    return state.taught.indexOf(ex.id) === -1;
+    if (state.taught.indexOf(ex.id) !== -1) return false;
+    // Intermediate: skip teach if already learned in a past session
+    if (state.level === "intermediate" && loadTaughtEver().indexOf(ex.id) !== -1) {
+      return false;
+    }
+    // Beginner: always offer teach once per exercise this session
+    return true;
   }
 
   function markTaught(state, plan, cursor) {
@@ -665,6 +758,7 @@
     if (!set) return;
     var id = set.exerciseId;
     if (state.taught.indexOf(id) === -1) state.taught.push(id);
+    persistTaught(id);
   }
 
   // --- Reducer ---
@@ -673,10 +767,14 @@
       schemaVersion: 2,
       planId: null,
       pendingGoal: null,
+      level: null,
+      mode: null,
+      machinePage: 0,
+      machineId: null,
       startedAt: null,
       cursor: 0,
       logged: [],
-      phase: "PlanSelect",
+      phase: "Home",
       phaseEnteredAt: t,
       setStartedAt: null,
       restEndsAt: null,
@@ -689,11 +787,15 @@
     };
   }
 
-  function freshSession(planId, t) {
-    return {
+  function freshSession(planId, t, level) {
+    var state = {
       schemaVersion: 2,
       planId: planId,
       pendingGoal: null,
+      level: level || "beginner",
+      mode: null,
+      machinePage: 0,
+      machineId: null,
       startedAt: t,
       cursor: 0,
       logged: [],
@@ -708,6 +810,7 @@
       paused: false,
       pendingCue: null
     };
+    return state;
   }
 
   function resolvePlanId(goal, equip) {
@@ -717,7 +820,7 @@
 
   function resetToHome(t) {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    if (typeof resetPlanTo === "function") resetPlanTo("fullbody");
+    if (typeof resetPlanTo === "function") resetPlanTo("fullbody", "beginner");
     return idleState(t);
   }
 
@@ -824,22 +927,96 @@
       return state;
     }
 
-    if (state.paused && event.t !== "SELECT_PLAN" && event.t !== "SELECT_EQUIP") return state;
+    var navWhilePaused = {
+      SELECT_HOME: 1, SELECT_PLAN: 1, SELECT_LEVEL: 1, SELECT_EQUIP: 1,
+      SELECT_MACHINE: 1, MACHINE_MORE: 1, TRAIN_MACHINE: 1, BACK: 1,
+      MACHINE_TIP: 1
+    };
+    if (state.paused && !navWhilePaused[event.t]) return state;
+
+    if (event.t === "SELECT_HOME") {
+      if (state.phase !== "Home" && state.phase !== "Idle") return state;
+      if (event.mode === "train") {
+        state.mode = "train";
+        state.pendingGoal = null;
+        state.level = null;
+        state.machineId = null;
+        return enter(state, "PlanSelect", t);
+      }
+      if (event.mode === "machines") {
+        state.mode = "machines";
+        state.machinePage = 0;
+        state.machineId = null;
+        state.pendingGoal = null;
+        state.level = null;
+        return enter(state, "MachineList", t);
+      }
+      return state;
+    }
 
     if (event.t === "SELECT_PLAN") {
+      if (state.phase !== "PlanSelect") return state;
       var goal = event.planId;
       if (goal !== "fullbody" && goal !== "upper" && goal !== "legs") return state;
       state.pendingGoal = goal;
       state.planId = null;
+      state.level = null;
+      return enter(state, "LevelSelect", t);
+    }
+
+    if (event.t === "SELECT_LEVEL") {
+      if (state.phase !== "LevelSelect" || !state.pendingGoal) return state;
+      if (event.level !== "beginner" && event.level !== "intermediate") return state;
+      state.level = event.level;
       return enter(state, "EquipSelect", t);
     }
 
     if (event.t === "SELECT_EQUIP") {
-      if (state.phase !== "EquipSelect" || !state.pendingGoal) return state;
+      if (state.phase !== "EquipSelect" || !state.pendingGoal || !state.level) return state;
       var pid = resolvePlanId(state.pendingGoal, event.equip);
       if (!PLANS[pid]) return state;
-      resetPlanTo(pid);
-      return freshSession(pid, t);
+      var lvl = state.level;
+      resetPlanTo(pid, lvl);
+      var session = freshSession(pid, t, lvl);
+      return goToCursorReadyOrTeach(session, clonePlan(pid, lvl), t);
+    }
+
+    if (event.t === "SELECT_MACHINE") {
+      if (state.phase !== "MachineList") return state;
+      if (MACHINE_IDS.indexOf(event.machineId) === -1) return state;
+      state.machineId = event.machineId;
+      state.teachStep = 0;
+      return enter(state, "MachineDetail", t);
+    }
+
+    if (event.t === "MACHINE_MORE") {
+      if (state.phase !== "MachineList") return state;
+      var next = (state.machinePage || 0) + 1;
+      if (next * 2 >= MACHINE_IDS.length) return state;
+      state.machinePage = next;
+      state.phaseEnteredAt = t;
+      return state;
+    }
+
+    if (event.t === "MACHINE_TIP") {
+      if (state.phase !== "MachineDetail" || !state.machineId) return state;
+      if (withinIdempotency(state, t)) return state;
+      var mex = EX[state.machineId];
+      var msteps = (mex && mex.steps) || [];
+      if (!msteps.length) return state;
+      state.teachStep = (state.teachStep + 1) % msteps.length;
+      state.phaseEnteredAt = t;
+      return state;
+    }
+
+    if (event.t === "TRAIN_MACHINE") {
+      if (state.phase !== "MachineDetail" || !state.machineId) return state;
+      var mpid = "machine_" + state.machineId;
+      var mplan = makeMachinePlan(state.machineId, "beginner");
+      if (!mplan) return state;
+      resetPlanTo(mpid, "beginner");
+      var mSession = freshSession(mpid, t, "beginner");
+      return goToCursorReadyOrTeach(mSession, mplan, t);
     }
 
     if (event.t === "TEACH_NEXT") {
@@ -869,9 +1046,29 @@
     }
 
     if (event.t === "BACK") {
-      if (state.phase === "EquipSelect") {
+      if (state.phase === "PlanSelect") {
+        state.mode = null;
         state.pendingGoal = null;
+        return enter(state, "Home", t);
+      }
+      if (state.phase === "LevelSelect") {
+        state.level = null;
         return enter(state, "PlanSelect", t);
+      }
+      if (state.phase === "EquipSelect") {
+        return enter(state, "LevelSelect", t);
+      }
+      if (state.phase === "MachineList") {
+        // Back button only appears on the last page → always home
+        state.mode = null;
+        state.machineId = null;
+        state.machinePage = 0;
+        return enter(state, "Home", t);
+      }
+      if (state.phase === "MachineDetail") {
+        state.machineId = null;
+        state.teachStep = 0;
+        return enter(state, "MachineList", t);
       }
       if (state.phase === "Menu") {
         var backTo = state.menuReturn || "SetReady";
@@ -984,12 +1181,28 @@
   }
 
   function render(state, t, plan) {
-    if (!state || state.phase === "PlanSelect" || state.phase === "Idle") {
+    if (!state || state.phase === "Home" || state.phase === "Idle") {
       return {
         eyebrow: "SetPace",
+        heading: "Let's train",
+        hero: "",
+        meta: "Learn machines · follow a plan · Middle pinch closes app",
+        demo: null,
+        progress: null,
+        mood: "home",
+        actions: [
+          { id: "mode_train", label: "Train", event: { t: "SELECT_HOME", mode: "train" } },
+          { id: "mode_machines", label: "Machines", event: { t: "SELECT_HOME", mode: "machines" } }
+        ]
+      };
+    }
+
+    if (state.phase === "PlanSelect") {
+      return {
+        eyebrow: "Train",
         heading: "What today?",
         hero: "",
-        meta: "Middle pinch closes app",
+        meta: "Pick a focus",
         demo: null,
         progress: null,
         mood: "home",
@@ -1001,11 +1214,31 @@
       };
     }
 
+    if (state.phase === "LevelSelect") {
+      var g0 = state.pendingGoal || "fullbody";
+      var g0Label = g0 === "upper" ? "Upper" : (g0 === "legs" ? "Legs" : "Full body");
+      return {
+        eyebrow: g0Label,
+        heading: "Level?",
+        hero: "",
+        meta: "Sets your starting weights",
+        demo: null,
+        progress: null,
+        mood: "home",
+        actions: [
+          { id: "level_beg", label: "Beginner", event: { t: "SELECT_LEVEL", level: "beginner" } },
+          { id: "level_int", label: "Intermediate", event: { t: "SELECT_LEVEL", level: "intermediate" } },
+          { id: "back", label: "Back", event: { t: "BACK" } }
+        ]
+      };
+    }
+
     if (state.phase === "EquipSelect") {
       var g = state.pendingGoal || "fullbody";
       var gLabel = g === "upper" ? "Upper" : (g === "legs" ? "Legs" : "Full body");
+      var lvlTag = state.level === "intermediate" ? " · Intermediate" : " · Beginner";
       return {
-        eyebrow: gLabel,
+        eyebrow: gLabel + lvlTag,
         heading: "Equipment?",
         hero: "",
         meta: "Machines or free weights",
@@ -1017,6 +1250,73 @@
           { id: "equip_f", label: "Free weights", event: { t: "SELECT_EQUIP", equip: "free" } },
           { id: "back", label: "Back", event: { t: "BACK" } }
         ]
+      };
+    }
+
+    if (state.phase === "MachineList") {
+      // Pages of 2 machines + More or Back (88px budget)
+      var page = state.machinePage || 0;
+      var start = page * 2;
+      var pair = MACHINE_IDS.slice(start, start + 2);
+      var hasMore = start + 2 < MACHINE_IDS.length;
+      var mActions = [];
+      for (var mi = 0; mi < pair.length; mi++) {
+        var mid = pair[mi];
+        mActions.push({
+          id: "mach_" + mid,
+          label: EX[mid].name,
+          event: { t: "SELECT_MACHINE", machineId: mid }
+        });
+      }
+      if (hasMore) {
+        mActions.push({ id: "more", label: "More", event: { t: "MACHINE_MORE" } });
+      } else {
+        mActions.push({ id: "back", label: "Back", event: { t: "BACK" } });
+      }
+      return {
+        eyebrow: "Machines",
+        heading: "Pick a machine",
+        hero: "",
+        meta: "Learn setup · then train it",
+        demo: null,
+        progress: null,
+        mood: "home",
+        actions: mActions
+      };
+    }
+
+    if (state.phase === "MachineDetail") {
+      var dex = EX[state.machineId];
+      if (!dex) {
+        return {
+          eyebrow: "Machines",
+          heading: "Not found",
+          hero: "",
+          meta: "",
+          demo: null,
+          progress: null,
+          mood: "home",
+          actions: [{ id: "back", label: "Back", event: { t: "BACK" } }]
+        };
+      }
+      var dsteps = dex.steps || [];
+      var didx = Math.min(state.teachStep || 0, Math.max(0, dsteps.length - 1));
+      var dActions = [
+        { id: "train_this", label: "Train this", event: { t: "TRAIN_MACHINE" } }
+      ];
+      if (dsteps.length > 1) {
+        dActions.push({ id: "tip", label: "Next tip", event: { t: "MACHINE_TIP" } });
+      }
+      dActions.push({ id: "back", label: "Back", event: { t: "BACK" } });
+      return {
+        eyebrow: dex.trains || "Machine",
+        heading: dex.name,
+        hero: dsteps[didx] || dex.cue || "",
+        meta: (dex.cue || "Setup tip") + (dsteps.length ? " · " + (didx + 1) + "/" + dsteps.length : ""),
+        demo: dex.demo || dex.id,
+        progress: null,
+        mood: "teach",
+        actions: dActions
       };
     }
 
@@ -1853,14 +2153,17 @@
   // --- App loop ---
   var state = null;
   var tickTimer = null;
-  var plan = clonePlan("fullbody");
+  var plan = clonePlan("fullbody", "beginner");
 
-  function resetPlanTo(planId) {
-    if (planId && PLANS[planId]) plan = clonePlan(planId);
+  function resetPlanTo(planId, level) {
+    if (!planId) return;
+    if (PLANS[planId] || isMachinePlanId(planId)) {
+      plan = clonePlan(planId, level || "beginner");
+    }
   }
 
   function save() {
-    if (!state || state.phase === "PlanSelect" || state.phase === "Idle") {
+    if (!state || PRE_WORKOUT[state.phase]) {
       try { localStorage.removeItem(STORE_KEY); } catch (e) {}
       return;
     }
@@ -1868,6 +2171,7 @@
       localStorage.setItem(STORE_KEY, JSON.stringify({
         state: state,
         planId: state.planId,
+        level: state.level || "beginner",
         planSetsLen: plan.sets.length
       }));
     } catch (e) {}
@@ -1885,15 +2189,31 @@
         return null;
       }
       var pid = wrapped.planId || s.planId;
-      if (!pid || !PLANS[pid]) return null;
-      resetPlanTo(pid);
-      var baseLen = PLANS[pid].sets.length;
+      var lvl = wrapped.level || s.level || "beginner";
+      if (!pid || (!PLANS[pid] && !isMachinePlanId(pid))) return null;
+      if (isMachinePlanId(pid) && !EX[pid.slice(8)]) return null;
+      s.level = lvl;
+      resetPlanTo(pid, lvl);
+      var baseLen = plan.sets.length;
+      // For catalog plans, base length is unscaled template length
+      if (PLANS[pid]) baseLen = PLANS[pid].sets.length;
       var extra = (wrapped.planSetsLen || plan.sets.length) - baseLen;
-      for (var i = 0; i < extra; i++) {
-        plan.sets.push(JSON.parse(JSON.stringify(PLANS[pid].sets[PLANS[pid].sets.length - 1])));
+      if (extra > 0) {
+        var template = PLANS[pid]
+          ? PLANS[pid].sets[PLANS[pid].sets.length - 1]
+          : plan.sets[plan.sets.length - 1];
+        for (var i = 0; i < extra; i++) {
+          plan.sets.push(JSON.parse(JSON.stringify(template)));
+          if (plan.sets[plan.sets.length - 1].targetWeightKg != null && lvl === "intermediate") {
+            var sw = Math.round(plan.sets[plan.sets.length - 1].targetWeightKg * LEVEL_MULT.intermediate);
+            if (sw > 250) sw = 250;
+            plan.sets[plan.sets.length - 1].targetWeightKg = sw;
+          }
+        }
       }
       if (!s.taught) s.taught = [];
       if (s.teachStep == null) s.teachStep = 0;
+      if (s.machinePage == null) s.machinePage = 0;
       s.schemaVersion = 2;
       return s;
     } catch (e) { return null; }
@@ -1927,9 +2247,9 @@
       state = idleState(t);
     }
 
-    if (event.t === "SELECT_EQUIP") {
+    if (event.t === "SELECT_EQUIP" || event.t === "TRAIN_MACHINE") {
       state = reducer(state, event, t, plan);
-      if (state.planId && PLANS[state.planId]) resetPlanTo(state.planId);
+      if (state.planId) resetPlanTo(state.planId, state.level || "beginner");
       lastFocusId = "primary";
       if (state.pendingCue === "rest_over") {
         state.pendingCue = null;
@@ -1941,7 +2261,25 @@
       return;
     }
 
+    if (event.t === "SELECT_HOME") {
+      state = reducer(state, event, t, plan);
+      lastFocusId = state.phase === "MachineList" ? "mach_" + MACHINE_IDS[0] : "plan_full";
+      save();
+      paint();
+      scheduleTick();
+      return;
+    }
+
     if (event.t === "SELECT_PLAN") {
+      state = reducer(state, event, t, plan);
+      lastFocusId = "level_beg";
+      save();
+      paint();
+      scheduleTick();
+      return;
+    }
+
+    if (event.t === "SELECT_LEVEL") {
       state = reducer(state, event, t, plan);
       lastFocusId = "equip_m";
       save();
@@ -1952,8 +2290,10 @@
 
     state = reducer(state, event, t, plan);
 
-    if (state.planId && (!plan || plan.id !== state.planId) && PLANS[state.planId]) {
-      if (plan.id !== state.planId) resetPlanTo(state.planId);
+    if (state.planId && (!plan || plan.id !== state.planId)) {
+      if (PLANS[state.planId] || isMachinePlanId(state.planId)) {
+        resetPlanTo(state.planId, state.level || "beginner");
+      }
     }
 
     if (state.pendingCue === "rest_over") {
@@ -1964,16 +2304,28 @@
     if (state.phase !== prevPhase) {
       lastFocusId = "primary";
       if (state.phase === "Adjusting") lastFocusId = "minus";
+      if (state.phase === "Home") lastFocusId = "mode_train";
       if (state.phase === "PlanSelect") lastFocusId = "plan_full";
+      if (state.phase === "LevelSelect") lastFocusId = "level_beg";
       if (state.phase === "EquipSelect") lastFocusId = "equip_m";
+      if (state.phase === "MachineList") {
+        lastFocusId = "mach_" + MACHINE_IDS[(state.machinePage || 0) * 2];
+      }
+      if (state.phase === "MachineDetail") lastFocusId = "train_this";
       if (state.phase === "Menu") {
         lastFocusId = state.menuReturn === "Resting" ? "undo"
           : (state.menuReturn === "Summary" ? "quit" : "howto");
       }
       if (state.phase === "QuitConfirm") lastFocusId = "primary";
       save();
-    } else if (event.t === "ADJUST_DELTA" || event.t === "CONFIRM" || event.t === "TEACH_NEXT") {
+    } else if (
+      event.t === "ADJUST_DELTA" || event.t === "CONFIRM" ||
+      event.t === "TEACH_NEXT" || event.t === "MACHINE_MORE" || event.t === "MACHINE_TIP"
+    ) {
       save();
+      if (event.t === "MACHINE_MORE") {
+        lastFocusId = "mach_" + MACHINE_IDS[(state.machinePage || 0) * 2];
+      }
     }
 
     paint();
@@ -2023,7 +2375,7 @@
 
   // Boot
   var saved = load();
-  if (saved && saved.phase && saved.phase !== "PlanSelect" && saved.phase !== "Idle") {
+  if (saved && saved.phase && !PRE_WORKOUT[saved.phase]) {
     state = saved;
     state.paused = document.hidden;
     if (state.phase === "Resting" && state.restEndsAt != null && now() >= state.restEndsAt) {
@@ -2034,7 +2386,7 @@
     }
   } else {
     state = idleState(now());
-    lastFocusId = "plan_full";
+    lastFocusId = "mode_train";
     paint();
   }
 })();
