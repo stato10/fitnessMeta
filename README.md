@@ -17,7 +17,7 @@ up**, and **a short plan to follow** at Beginner or Intermediate weight.
 |---|---|---|
 | Focus | Rep / set tally | Machine guide + workout runner |
 | Rest timer | Often counts up | Counts down · tone + flash |
-| Teaching | Little / none | Stick demos + step cues |
+| Teaching | Little / none | GIF demos + short step cues |
 | Plans | Hardcoded list | Full body / Upper / Legs · leveled |
 | Machines | No library | Browsable machine guide → Train this |
 
@@ -27,8 +27,10 @@ Home offers **Train** or **Machines**. Train: pick a focus, level, and equipment
 then SetPace teaches each new exercise (Beginner always; Intermediate can skip
 what you’ve already learned) and runs set + rest so you never pick up a phone.
 Machines: browse leg press, chest press, lat pulldown, and more — see what it
-trains, setup tips, and a canvas demo, then **Train this** for a quick 2-set
-block. Everything loads up front (no network video). No camera, no live form
+trains, setup tips, and a motion GIF demo, then **Train this** for a quick
+2-set block. Demo GIFs ship with the app (curated from
+[exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset);
+media © [Gym visual](https://gymvisual.com/)). No camera, no live form
 checking, no automatic rep counting.
 
 Built as a Meta **Web App**: standard HTML, CSS and JavaScript running

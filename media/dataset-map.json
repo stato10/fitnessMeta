@@ -1,0 +1,309 @@
+{
+  "legpress": {
+    "datasetId": "0739",
+    "gifFile": "0739-10Z2DXU.gif",
+    "gifRel": "media/legpress.gif",
+    "steps": [
+      "Adjust the seat and",
+      "Sit on the sled machine",
+      "Grip the handles on the",
+      "Push the footplate away",
+      "Continue pushing until your"
+    ],
+    "name": "sled 45в° leg press",
+    "attribution": "Gym visual"
+  },
+  "chestpress": {
+    "datasetId": "0577",
+    "gifFile": "0577-T0yTjgW.gif",
+    "gifRel": "media/chestpress.gif",
+    "steps": [
+      "Adjust the seat height and",
+      "Grasp the handles with an",
+      "Push the handles forward",
+      "Pause briefly at the end of",
+      "Repeat for the desired"
+    ],
+    "name": "lever chest press",
+    "attribution": "Gym visual"
+  },
+  "latpulldown": {
+    "datasetId": "2330",
+    "gifFile": "2330-LEprlgG.gif",
+    "gifRel": "media/latpulldown.gif",
+    "steps": [
+      "Sit on the lat pulldown",
+      "Grasp the cable bar with an",
+      "Lean back slightly and keep",
+      "Pull the bar down towards",
+      "Pause for a moment at the"
+    ],
+    "name": "cable lat pulldown full range of motion",
+    "attribution": "Gym visual"
+  },
+  "shpress": {
+    "datasetId": "0603",
+    "gifFile": "0603-67n3r98.gif",
+    "gifRel": "media/shpress.gif",
+    "steps": [
+      "Adjust the seat height and",
+      "Grasp the handles with an",
+      "Push the handles upward",
+      "Pause for a moment at the",
+      "Repeat for the desired"
+    ],
+    "name": "lever shoulder press",
+    "attribution": "Gym visual"
+  },
+  "cablecurl": {
+    "datasetId": "0868",
+    "gifFile": "0868-G08RZcQ.gif",
+    "gifRel": "media/cablecurl.gif",
+    "steps": [
+      "Stand facing the cable",
+      "Grasp the cable attachment",
+      "Keep your elbows close to",
+      "Exhale and curl the cable",
+      "Pause for a moment at the"
+    ],
+    "name": "cable curl",
+    "attribution": "Gym visual"
+  },
+  "incline": {
+    "datasetId": "1299",
+    "gifFile": "1299-jHAnWmT.gif",
+    "gifRel": "media/incline.gif",
+    "steps": [
+      "Adjust the seat and",
+      "Sit on the machine with",
+      "Grasp the handles with an",
+      "Push the handles forward",
+      "Pause for a moment"
+    ],
+    "name": "lever incline chest press",
+    "attribution": "Gym visual"
+  },
+  "tripush": {
+    "datasetId": "0201",
+    "gifFile": "0201-3ZflifB.gif",
+    "gifRel": "media/tripush.gif",
+    "steps": [
+      "Attach a straight bar to a",
+      "Stand facing the machine",
+      "Grasp the bar with an",
+      "Keep your elbows close to",
+      "Exhale and push the bar"
+    ],
+    "name": "cable pushdown",
+    "attribution": "Gym visual"
+  },
+  "legcurl": {
+    "datasetId": "0586",
+    "gifFile": "0586-17lJ1kr.gif",
+    "gifRel": "media/legcurl.gif",
+    "steps": [
+      "Adjust the machine to fit",
+      "Lie face down on the",
+      "Grasp the handles or the",
+      "Keeping your upper body",
+      "Hold the contracted"
+    ],
+    "name": "lever lying leg curl",
+    "attribution": "Gym visual"
+  },
+  "legext": {
+    "datasetId": "0585",
+    "gifFile": "0585-my33uHU.gif",
+    "gifRel": "media/legext.gif",
+    "steps": [
+      "Adjust the seat height and",
+      "Sit on the machine with",
+      "Grasp the handles or",
+      "Extend your legs forward by",
+      "Pause for a moment at the"
+    ],
+    "name": "lever leg extension",
+    "attribution": "Gym visual"
+  },
+  "calfraise": {
+    "datasetId": "0605",
+    "gifFile": "0605-ykUOVze.gif",
+    "gifRel": "media/calfraise.gif",
+    "steps": [
+      "Adjust the machine to your",
+      "Place your shoulders under",
+      "Raise your heels as high as",
+      "Pause for a moment at the",
+      "Repeat for the desired"
+    ],
+    "name": "lever standing calf raise",
+    "attribution": "Gym visual"
+  },
+  "plank": {
+    "datasetId": "0464",
+    "gifFile": "0464-CosupLu.gif",
+    "gifRel": "media/plank.gif",
+    "steps": [
+      "Start in a high plank",
+      "Engage your core and glutes",
+      "Rotate your torso to the",
+      "Keep your hips and legs",
+      "Hold for a moment"
+    ],
+    "name": "front plank with twist",
+    "attribution": "Gym visual"
+  },
+  "bwsquat": {
+    "datasetId": "1685",
+    "gifFile": "1685-QChZi3x.gif",
+    "gifRel": "media/bwsquat.gif",
+    "steps": [
+      "Stand with your feet",
+      "Lower your body down into a",
+      "As you come up from the",
+      "Return to the starting",
+      "Repeat for the desired"
+    ],
+    "name": "squat to overhead reach",
+    "attribution": "Gym visual"
+  },
+  "gobletsquat": {
+    "datasetId": "1760",
+    "gifFile": "1760-yn8yg1r.gif",
+    "gifRel": "media/gobletsquat.gif",
+    "steps": [
+      "Stand with your feet",
+      "Keeping your chest up and",
+      "Continue lowering until",
+      "Pause for a moment at the",
+      "Repeat for the desired"
+    ],
+    "name": "dumbbell goblet squat",
+    "attribution": "Gym visual"
+  },
+  "bbbench": {
+    "datasetId": "0025",
+    "gifFile": "0025-EIeI8Vf.gif",
+    "gifRel": "media/bbbench.gif",
+    "steps": [
+      "Lie flat on a bench with",
+      "Grasp the barbell with an",
+      "Lift the barbell off the",
+      "Lower the barbell slowly",
+      "Pause for a moment when the"
+    ],
+    "name": "barbell bench press",
+    "attribution": "Gym visual"
+  },
+  "bentrow": {
+    "datasetId": "0027",
+    "gifFile": "0027-eZyBC3j.gif",
+    "gifRel": "media/bentrow.gif",
+    "steps": [
+      "Stand with your feet",
+      "Bend forward at the hips",
+      "Grasp the barbell with an",
+      "Pull the barbell towards",
+      "Pause for a moment at the"
+    ],
+    "name": "barbell bent over row",
+    "attribution": "Gym visual"
+  },
+  "dbohp": {
+    "datasetId": "0405",
+    "gifFile": "0405-znQUdHY.gif",
+    "gifRel": "media/dbohp.gif",
+    "steps": [
+      "Sit on a bench with a",
+      "Raise the dumbbells to",
+      "Press the dumbbells upward",
+      "Pause for a moment at the",
+      "Repeat for the desired"
+    ],
+    "name": "dumbbell seated shoulder press",
+    "attribution": "Gym visual"
+  },
+  "dbcurl": {
+    "datasetId": "0294",
+    "gifFile": "0294-NbVPDMW.gif",
+    "gifRel": "media/dbcurl.gif",
+    "steps": [
+      "Stand up straight with a",
+      "Keeping your upper arms",
+      "Continue to raise the",
+      "Hold the contracted",
+      "Inhale and slowly begin to"
+    ],
+    "name": "dumbbell biceps curl",
+    "attribution": "Gym visual"
+  },
+  "rdl": {
+    "datasetId": "0085",
+    "gifFile": "0085-wQ2c4XD.gif",
+    "gifRel": "media/rdl.gif",
+    "steps": [
+      "Stand with your feet",
+      "Hold the barbell with an",
+      "Bend at the hips",
+      "Lower the barbell towards",
+      "Feel the stretch in your"
+    ],
+    "name": "barbell romanian deadlift",
+    "attribution": "Gym visual"
+  },
+  "dblunge": {
+    "datasetId": "0336",
+    "gifFile": "0336-RRWFUcw.gif",
+    "gifRel": "media/dblunge.gif",
+    "steps": [
+      "Stand with your feet",
+      "Take a step forward with",
+      "Keep your back straight and",
+      "Push through your right",
+      "Repeat with your left leg."
+    ],
+    "name": "dumbbell lunge",
+    "attribution": "Gym visual"
+  },
+  "dbincpress": {
+    "datasetId": "0314",
+    "gifFile": "0314-ns0SIbU.gif",
+    "gifRel": "media/dbincpress.gif",
+    "steps": [
+      "Set up an incline bench at",
+      "Sit on the bench with your",
+      "Hold a dumbbell in each hand",
+      "Slowly lower the dumbbells",
+      "Push the dumbbells back up"
+    ],
+    "name": "dumbbell incline bench press",
+    "attribution": "Gym visual"
+  },
+  "kickback": {
+    "datasetId": "0333",
+    "gifFile": "0333-W6PxUkg.gif",
+    "gifRel": "media/kickback.gif",
+    "steps": [
+      "Stand with your feet",
+      "Bend your knees slightly",
+      "Bring your upper arms close",
+      "Extend your arms straight",
+      "Pause for a moment"
+    ],
+    "name": "dumbbell kickback",
+    "attribution": "Gym visual"
+  },
+  "dbcalf": {
+    "datasetId": "0417",
+    "gifFile": "0417-dPmaUaU.gif",
+    "gifRel": "media/dbcalf.gif",
+    "steps": [
+      "Stand with your feet",
+      "Raise your heels off the",
+      "Pause for a moment at the",
+      "Repeat for the desired"
+    ],
+    "name": "dumbbell standing calf raise",
+    "attribution": "Gym visual"
+  }
+}

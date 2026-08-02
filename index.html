@@ -71,11 +71,13 @@
     display: none;
     width: 280px;
     height: 210px;
-    margin: 6px auto 4px;
+    margin: 6px auto 2px;
     flex-shrink: 0;
     border-radius: 16px;
     outline: 1px solid var(--line);
     overflow: hidden;
+    position: relative;
+    background: #030d0e;
   }
   #demoWrap.on { display: block; }
   #demo {
@@ -84,6 +86,24 @@
     display: block;
     background: #030d0e;
   }
+  #demo.off { display: none; }
+  #demoGif {
+    display: none;
+    width: 280px;
+    height: 210px;
+    object-fit: contain;
+    background: #030d0e;
+  }
+  #demoGif.on { display: block; }
+  #demoCredit {
+    display: none;
+    text-align: center;
+    font-size: 12px;
+    color: #5a7a7e;
+    margin: 0 0 2px;
+    min-height: 0;
+  }
+  #demoCredit.on { display: block; }
   #hero {
     font-size: 58px;
     font-weight: 800;
@@ -200,7 +220,11 @@
   <div id="eyebrow"></div>
   <div id="heading"></div>
   <div id="progress"><i id="progressFill"></i></div>
-  <div id="demoWrap"><canvas id="demo" width="280" height="210"></canvas></div>
+  <div id="demoWrap">
+    <canvas id="demo" width="280" height="210"></canvas>
+    <img id="demoGif" alt="" width="280" height="210" decoding="async">
+  </div>
+  <div id="demoCredit"></div>
   <div id="hero"></div>
   <div id="meta"></div>
   <div id="actions"></div>
@@ -226,6 +250,7 @@
       trains: "Quads · glutes",
       cue: "Machine · adjust seat",
       demo: "legpress",
+      gif: "media/legpress.gif",
       steps: [
         "Sit · back flat",
         "Feet mid platform",
@@ -239,6 +264,7 @@
       trains: "Chest · triceps",
       cue: "Machine · seat height",
       demo: "chestpress",
+      gif: "media/chestpress.gif",
       steps: [
         "Sit · back flat",
         "Handles at chest",
@@ -252,6 +278,7 @@
       trains: "Lats · upper back",
       cue: "Cable · high bar",
       demo: "latpulldown",
+      gif: "media/latpulldown.gif",
       steps: [
         "Sit · pin thighs",
         "Wide grip on bar",
@@ -265,6 +292,7 @@
       trains: "Shoulders · triceps",
       cue: "Machine · seat up",
       demo: "shpress",
+      gif: "media/shpress.gif",
       steps: [
         "Sit · back supported",
         "Handles at shoulders",
@@ -278,6 +306,7 @@
       trains: "Biceps",
       cue: "Cable · low pulley",
       demo: "cablecurl",
+      gif: "media/cablecurl.gif",
       steps: [
         "Stand · elbows in",
         "Grip bar underhand",
@@ -291,6 +320,7 @@
       trains: "Core",
       cue: "Floor · brace hard",
       demo: "plank",
+      gif: "media/plank.gif",
       steps: [
         "Forearms on floor",
         "Body in one line",
@@ -304,6 +334,7 @@
       trains: "Upper chest · shoulders",
       cue: "Machine · slight up",
       demo: "incline",
+      gif: "media/incline.gif",
       steps: [
         "Sit · back on pad",
         "Handles at chest",
@@ -317,6 +348,7 @@
       trains: "Triceps",
       cue: "Cable · high pulley",
       demo: "tripush",
+      gif: "media/tripush.gif",
       steps: [
         "Stand · elbows pinned",
         "Grip bar / rope",
@@ -330,6 +362,7 @@
       trains: "Hamstrings",
       cue: "Machine · pad calves",
       demo: "legcurl",
+      gif: "media/legcurl.gif",
       steps: [
         "Lie or sit set",
         "Pad on lower legs",
@@ -343,6 +376,7 @@
       trains: "Quads",
       cue: "Machine · pad shins",
       demo: "legext",
+      gif: "media/legext.gif",
       steps: [
         "Sit · back flat",
         "Pad on lower shins",
@@ -356,6 +390,7 @@
       trains: "Calves",
       cue: "Machine · toes edge",
       demo: "calfraise",
+      gif: "media/calfraise.gif",
       steps: [
         "Toes on platform",
         "Heels hang free",
@@ -368,6 +403,7 @@
       id: "bwsquat", name: "BW squat", unit: "bodyweight",
       cue: "Floor · own weight",
       demo: "bwsquat",
+      gif: "media/bwsquat.gif",
       steps: [
         "Feet shoulder wide",
         "Chest up · brace",
@@ -380,6 +416,7 @@
       id: "gobletsquat", name: "Goblet squat", unit: "kg",
       cue: "Dumbbell · at chest",
       demo: "gobletsquat",
+      gif: "media/gobletsquat.gif",
       steps: [
         "Hold DB at chest",
         "Feet shoulder wide",
@@ -392,6 +429,7 @@
       id: "bbbench", name: "Bench press", unit: "kg",
       cue: "Barbell · flat bench",
       demo: "bbbench",
+      gif: "media/bbbench.gif",
       steps: [
         "Lie · feet planted",
         "Grip outside shoulders",
@@ -404,6 +442,7 @@
       id: "bentrow", name: "Bent-over row", unit: "kg",
       cue: "Barbell · hinge",
       demo: "bentrow",
+      gif: "media/bentrow.gif",
       steps: [
         "Hinge · back flat",
         "Bar hangs at shins",
@@ -416,6 +455,7 @@
       id: "dbohp", name: "DB shoulder press", unit: "kg",
       cue: "Dumbbells · seated",
       demo: "dbohp",
+      gif: "media/dbohp.gif",
       steps: [
         "Sit · core braced",
         "DBs at shoulders",
@@ -428,6 +468,7 @@
       id: "dbcurl", name: "DB curl", unit: "kg",
       cue: "Dumbbells · stand",
       demo: "dbcurl",
+      gif: "media/dbcurl.gif",
       steps: [
         "Stand · elbows in",
         "Palms forward",
@@ -440,6 +481,7 @@
       id: "rdl", name: "Romanian DL", unit: "kg",
       cue: "Barbell · soft knees",
       demo: "rdl",
+      gif: "media/rdl.gif",
       steps: [
         "Soft knees · brace",
         "Hinge hips back",
@@ -452,6 +494,7 @@
       id: "dblunge", name: "DB lunge", unit: "kg",
       cue: "Dumbbells · at sides",
       demo: "dblunge",
+      gif: "media/dblunge.gif",
       steps: [
         "Step one foot forward",
         "Both knees ~90 deg",
@@ -464,6 +507,7 @@
       id: "dbincpress", name: "DB incline press", unit: "kg",
       cue: "Dumbbells · incline",
       demo: "dbincpress",
+      gif: "media/dbincpress.gif",
       steps: [
         "Bench slight incline",
         "DBs at chest line",
@@ -476,6 +520,7 @@
       id: "kickback", name: "Tricep kickback", unit: "kg",
       cue: "Dumbbell · hinge",
       demo: "kickback",
+      gif: "media/kickback.gif",
       steps: [
         "Hinge · elbow high",
         "Upper arm still",
@@ -488,6 +533,7 @@
       id: "dbcalf", name: "DB calf raise", unit: "kg",
       cue: "Dumbbells · stand",
       demo: "dbcalf",
+      gif: "media/dbcalf.gif",
       steps: [
         "Hold DBs at sides",
         "Rise onto toes",
@@ -1480,12 +1526,24 @@
     };
   }
 
-  // --- Canvas demos (one clear motion per exercise) ---
+  // --- Demos: Gym visual GIFs when available, canvas fallback ---
   var demoCanvas = document.getElementById("demo");
+  var demoGif = document.getElementById("demoGif");
+  var demoCredit = document.getElementById("demoCredit");
   var demoCtx = demoCanvas.getContext("2d");
   var demoRaf = null;
   var demoKind = null;
   var demoStart = 0;
+  var demoMode = null; // "gif" | "canvas"
+
+  function gifForKind(kind) {
+    if (!kind) return null;
+    if (EX[kind] && EX[kind].gif) return EX[kind].gif;
+    for (var id in EX) {
+      if (EX[id].demo === kind && EX[id].gif) return EX[id].gif;
+    }
+    return null;
+  }
 
   function stopDemo() {
     if (demoRaf) {
@@ -1493,6 +1551,12 @@
       demoRaf = null;
     }
     demoKind = null;
+    demoMode = null;
+    demoCanvas.classList.remove("off");
+    demoGif.classList.remove("on");
+    demoGif.removeAttribute("src");
+    demoCredit.classList.remove("on");
+    demoCredit.textContent = "";
   }
 
   function strokeCyan(ctx, w) {
@@ -2001,9 +2065,23 @@
       stopDemo();
       return;
     }
-    if (demoKind === kind && demoRaf) return;
+    var gif = gifForKind(kind);
+    if (gif) {
+      if (demoKind === kind && demoMode === "gif") return;
+      stopDemo();
+      demoKind = kind;
+      demoMode = "gif";
+      demoCanvas.classList.add("off");
+      demoGif.src = gif;
+      demoGif.classList.add("on");
+      demoCredit.textContent = "Demo © Gym visual";
+      demoCredit.classList.add("on");
+      return;
+    }
+    if (demoKind === kind && demoMode === "canvas" && demoRaf) return;
     stopDemo();
     demoKind = kind;
+    demoMode = "canvas";
     demoStart = performance.now();
     function loop(ts) {
       drawDemoFrame(kind, ts);
