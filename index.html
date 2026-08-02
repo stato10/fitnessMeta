@@ -254,8 +254,8 @@
       steps: [
         "Sit · back flat",
         "Feet mid platform",
-        "Unlock handles",
-        "Press out slow",
+        "Unlock the sled",
+        "Press legs out",
         "Bend knees control"
       ]
     },
@@ -266,11 +266,11 @@
       demo: "chestpress",
       gif: "media/chestpress.gif",
       steps: [
-        "Sit · back flat",
+        "Sit · back on pad",
         "Handles at chest",
-        "Grip firm · wrists",
-        "Press out slow",
-        "Return with control"
+        "Elbows ~90 deg",
+        "Press arms out",
+        "Return slow"
       ]
     },
     latpulldown: {
@@ -280,8 +280,8 @@
       demo: "latpulldown",
       gif: "media/latpulldown.gif",
       steps: [
-        "Sit · pin thighs",
-        "Wide grip on bar",
+        "Sit · thighs pinned",
+        "Wide overhand grip",
         "Chest up slightly",
         "Pull bar to chest",
         "Raise arms slow"
@@ -296,7 +296,7 @@
       steps: [
         "Sit · back supported",
         "Handles at shoulders",
-        "Press up slow",
+        "Press up overhead",
         "Do not lock hard",
         "Lower with control"
       ]
@@ -308,10 +308,10 @@
       demo: "cablecurl",
       gif: "media/cablecurl.gif",
       steps: [
-        "Stand · elbows in",
-        "Grip bar underhand",
+        "Face low cable",
+        "Underhand grip",
+        "Elbows pinned in",
         "Curl to shoulders",
-        "Keep elbows still",
         "Lower slow"
       ]
     },
@@ -322,10 +322,10 @@
       demo: "plank",
       gif: "media/plank.gif",
       steps: [
-        "Forearms on floor",
+        "Forearms under shoulders",
+        "Toes on floor",
         "Body in one line",
         "Brace abs hard",
-        "Breathe steady",
         "Hold the time"
       ]
     },
@@ -350,10 +350,10 @@
       demo: "tripush",
       gif: "media/tripush.gif",
       steps: [
-        "Stand · elbows pinned",
+        "Stand at high cable",
         "Grip bar / rope",
+        "Elbows pinned in",
         "Push down to hips",
-        "Squeeze at bottom",
         "Return slow"
       ]
     },
@@ -364,9 +364,9 @@
       demo: "legcurl",
       gif: "media/legcurl.gif",
       steps: [
-        "Lie or sit set",
+        "Lie face down",
         "Pad on lower legs",
-        "Curl heels to you",
+        "Curl heels to glutes",
         "Squeeze hamstrings",
         "Lower slow"
       ]
@@ -392,8 +392,8 @@
       demo: "calfraise",
       gif: "media/calfraise.gif",
       steps: [
-        "Toes on platform",
-        "Heels hang free",
+        "Shoulders under pads",
+        "Balls of feet on edge",
         "Rise onto toes",
         "Pause at top",
         "Lower heels slow"
@@ -408,8 +408,8 @@
         "Feet shoulder wide",
         "Chest up · brace",
         "Sit hips back",
-        "Knees track toes",
-        "Stand tall"
+        "Thighs near parallel",
+        "Drive up tall"
       ]
     },
     gobletsquat: {
@@ -667,9 +667,13 @@
   var IDEMPOTENCY_MS = 250;
   var STALE_CUE_MS = 30000;
   var LEVEL_MULT = { beginner: 1, intermediate: 1.35 };
+  // Full catalog: every exercise with a matched GIF demo
   var MACHINE_IDS = [
     "legpress", "chestpress", "latpulldown", "shpress", "cablecurl",
-    "incline", "tripush", "legcurl", "legext", "calfraise"
+    "incline", "tripush", "legcurl", "legext", "calfraise",
+    "gobletsquat", "bbbench", "bentrow", "dbohp", "dbcurl",
+    "rdl", "dblunge", "dbincpress", "kickback", "dbcalf",
+    "bwsquat", "plank"
   ];
   var MACHINE_DEFAULTS = {
     legpress: { reps: 10, kg: 40 },
@@ -681,7 +685,19 @@
     tripush: { reps: 12, kg: 20 },
     legcurl: { reps: 12, kg: 25 },
     legext: { reps: 12, kg: 25 },
-    calfraise: { reps: 15, kg: 30 }
+    calfraise: { reps: 15, kg: 30 },
+    gobletsquat: { reps: 10, kg: 16 },
+    bbbench: { reps: 8, kg: 30 },
+    bentrow: { reps: 10, kg: 30 },
+    dbohp: { reps: 10, kg: 10 },
+    dbcurl: { reps: 12, kg: 8 },
+    rdl: { reps: 8, kg: 40 },
+    dblunge: { reps: 10, kg: 10 },
+    dbincpress: { reps: 10, kg: 14 },
+    kickback: { reps: 12, kg: 6 },
+    dbcalf: { reps: 15, kg: 12 },
+    bwsquat: { reps: 12, kg: null },
+    plank: { reps: 30, kg: null }
   };
   var PRE_WORKOUT = {
     Home: 1, Idle: 1, PlanSelect: 1, LevelSelect: 1,
@@ -1232,13 +1248,13 @@
         eyebrow: "SetPace",
         heading: "Let's train",
         hero: "",
-        meta: "Learn machines · follow a plan · Middle pinch closes app",
+        meta: "Learn exercises · follow a plan · Middle pinch closes app",
         demo: null,
         progress: null,
         mood: "home",
         actions: [
           { id: "mode_train", label: "Train", event: { t: "SELECT_HOME", mode: "train" } },
-          { id: "mode_machines", label: "Machines", event: { t: "SELECT_HOME", mode: "machines" } }
+          { id: "mode_machines", label: "Exercises", event: { t: "SELECT_HOME", mode: "machines" } }
         ]
       };
     }
@@ -1320,10 +1336,10 @@
         mActions.push({ id: "back", label: "Back", event: { t: "BACK" } });
       }
       return {
-        eyebrow: "Machines",
-        heading: "Pick a machine",
+        eyebrow: "Exercises",
+        heading: "Pick an exercise",
         hero: "",
-        meta: "Learn setup · then train it",
+        meta: "See the demo · then train it",
         demo: null,
         progress: null,
         mood: "home",
@@ -1335,11 +1351,12 @@
       var dex = EX[state.machineId];
       if (!dex) {
         return {
-          eyebrow: "Machines",
+          eyebrow: "Exercises",
           heading: "Not found",
           hero: "",
           meta: "",
           demo: null,
+          gif: null,
           progress: null,
           mood: "home",
           actions: [{ id: "back", label: "Back", event: { t: "BACK" } }]
@@ -1355,11 +1372,12 @@
       }
       dActions.push({ id: "back", label: "Back", event: { t: "BACK" } });
       return {
-        eyebrow: dex.trains || "Machine",
+        eyebrow: dex.trains || dex.cue || "Exercise",
         heading: dex.name,
         hero: dsteps[didx] || dex.cue || "",
         meta: (dex.cue || "Setup tip") + (dsteps.length ? " · " + (didx + 1) + "/" + dsteps.length : ""),
         demo: dex.demo || dex.id,
+        gif: dex.gif || null,
         progress: null,
         mood: "teach",
         actions: dActions
@@ -1419,6 +1437,7 @@
         hero: steps[idx] || "",
         meta: tex.cue || "Follow the motion",
         demo: tex.demo || tex.id,
+        gif: tex.gif || null,
         progress: pct,
         mood: "teach",
         actions: [
@@ -2060,14 +2079,14 @@
     fn(ctx, p);
   }
 
-  function startDemo(kind) {
+  function startDemo(kind, gifOverride) {
     if (!kind) {
       stopDemo();
       return;
     }
-    var gif = gifForKind(kind);
+    var gif = gifOverride || gifForKind(kind);
     if (gif) {
-      if (demoKind === kind && demoMode === "gif") return;
+      if (demoKind === kind && demoMode === "gif" && demoGif.getAttribute("src") === gif) return;
       stopDemo();
       demoKind = kind;
       demoMode = "gif";
@@ -2181,7 +2200,7 @@
 
     if (frame.demo) {
       demoWrap.classList.add("on");
-      startDemo(frame.demo);
+      startDemo(frame.demo, frame.gif || null);
     } else {
       demoWrap.classList.remove("on");
       stopDemo();
