@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Run edge-case tests (pure reducer, fake clock)
+        run: node --test test/edge-cases.test.js
+
+      - name: Build (validate content + size gate)
+        run: node build.mjs
+
+      - name: Parity gate — committed index.html must equal the build
+        run: |
+          cmp index.html dist/index.html || {
+            echo "::error::index.html is out of sync with src/. Run 'npm run build' and commit the updated index.html"
+            exit 1
+          }
+          echo "Parity OK: index.html matches build"

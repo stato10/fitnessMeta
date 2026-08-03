@@ -6,210 +6,210 @@
 <meta name="viewport" content="width=600, height=600, initial-scale=1.0, user-scalable=no">
 <title>SetPace</title>
 <style>
-  :root {
-    --bg: #000;
-    --fg: #ecfeff;
-    --accent: #5eead4;
-    --accent2: #67e8f9;
-    --muted: #94b8bc;
-    --card: #071a1c;
-    --card-hi: #0c2c30;
-    --line: #1a4a50;
-    --danger: #fb7185;
-    --good: #86efac;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    width: 600px;
-    height: 600px;
-    overflow: hidden;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: "Segoe UI", "Arial Hebrew", "Noto Sans Hebrew", system-ui, sans-serif;
-  }
-  #app {
-    width: 600px;
-    height: 600px;
+:root {
+  --bg: #000;
+  --fg: #ecfeff;
+  --accent: #5eead4;
+  --accent2: #67e8f9;
+  --muted: #94b8bc;
+  --card: #071a1c;
+  --card-hi: #0c2c30;
+  --line: #1a4a50;
+  --danger: #fb7185;
+  --good: #86efac;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 600px;
+  height: 600px;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Segoe UI", "Arial Hebrew", "Noto Sans Hebrew", system-ui, sans-serif;
+}
+#app {
+  width: 600px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 22px 12px;
+  position: relative;
+}
+#eyebrow {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  min-height: 20px;
+  margin-bottom: 4px;
+}
+#heading {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--accent2);
+  line-height: 1.15;
+  min-height: 36px;
+}
+#progress {
+  display: none;
+  height: 6px;
+  background: #0a2226;
+  border-radius: 99px;
+  margin: 10px 0 6px;
+  overflow: hidden;
+}
+#progress.on { display: block; }
+#progress > i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px;
+  transition: width 0.35s ease;
+}
+#demoWrap {
+  display: none;
+  width: 280px;
+  height: 210px;
+  margin: 6px auto 2px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  outline: 1px solid var(--line);
+  overflow: hidden;
+  position: relative;
+  background: #030d0e;
+}
+#demoWrap.on { display: block; }
+#demo {
+  width: 280px;
+  height: 210px;
+  display: block;
+  background: #030d0e;
+}
+#demo.off { display: none; }
+#demoGif {
+  display: none;
+  width: 280px;
+  height: 210px;
+  object-fit: contain;
+  background: #030d0e;
+}
+#demoGif.on { display: block; }
+#demoCredit {
+  display: none;
+  text-align: center;
+  font-size: 12px;
+  color: #5a7a7e;
+  margin: 0 0 2px;
+  min-height: 0;
+}
+#demoCredit.on { display: block; }
+#hero {
+  font-size: 58px;
+  font-weight: 800;
+  line-height: 1.05;
+  margin: 10px 0 6px;
+  min-height: 64px;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+}
+#hero.empty {
+  min-height: 0;
+  margin: 0;
+  font-size: 0;
+}
+#app.teach #hero {
+  font-size: 24px;
+  font-weight: 700;
+  min-height: 30px;
+  margin: 4px 0 2px;
+  color: var(--fg);
+}
+#app.rest #hero {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+#app.summary #heading { color: var(--good); }
+#app.summary #hero { color: var(--good); font-size: 48px; }
+#meta {
+  font-size: 18px;
+  color: var(--muted);
+  min-height: 24px;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+#actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.btn {
+  min-height: 88px;
+  width: 100%;
+  border: 2px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font-size: 26px;
+  font-weight: 700;
+  border-radius: 16px;
+  text-align: left;
+  direction: ltr;
+  padding: 0 24px;
+  outline: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn.primary {
+  border-color: var(--accent);
+  background: var(--card-hi);
+  color: var(--accent2);
+}
+.btn:focus {
+  border-color: var(--accent2);
+  box-shadow: inset 0 0 0 3px rgba(94, 234, 212, 0.55);
+  background: #10383e;
+}
+#flash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, #a5f3fc 0%, #22d3ee 45%, #000 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: opacity 0.12s ease;
+}
+#flash.on { opacity: 0.92; }
+#error {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: var(--danger);
+  padding: 24px;
+  font-size: 18px;
+  white-space: pre-wrap;
+  z-index: 10000;
+}
+.desktop-hint { display: none; }
+@media (min-width: 700px) {
+  body {
+    width: 100vw;
+    height: 100vh;
     display: flex;
-    flex-direction: column;
-    padding: 16px 22px 12px;
-    position: relative;
+    align-items: center;
+    justify-content: center;
+    background: #0b1220;
   }
-  #eyebrow {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 0.04em;
-    min-height: 20px;
-    margin-bottom: 4px;
-  }
-  #heading {
-    font-size: 30px;
-    font-weight: 800;
-    color: var(--accent2);
-    line-height: 1.15;
-    min-height: 36px;
-  }
-  #progress {
-    display: none;
-    height: 6px;
-    background: #0a2226;
-    border-radius: 99px;
-    margin: 10px 0 6px;
-    overflow: hidden;
-  }
-  #progress.on { display: block; }
-  #progress > i {
+  #app { outline: 1px solid #1e293b; border-radius: 8px; }
+  .desktop-hint {
     display: block;
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 99px;
-    transition: width 0.35s ease;
-  }
-  #demoWrap {
-    display: none;
-    width: 280px;
-    height: 210px;
-    margin: 6px auto 2px;
-    flex-shrink: 0;
-    border-radius: 16px;
-    outline: 1px solid var(--line);
-    overflow: hidden;
-    position: relative;
-    background: #030d0e;
-  }
-  #demoWrap.on { display: block; }
-  #demo {
-    width: 280px;
-    height: 210px;
-    display: block;
-    background: #030d0e;
-  }
-  #demo.off { display: none; }
-  #demoGif {
-    display: none;
-    width: 280px;
-    height: 210px;
-    object-fit: contain;
-    background: #030d0e;
-  }
-  #demoGif.on { display: block; }
-  #demoCredit {
-    display: none;
-    text-align: center;
-    font-size: 12px;
-    color: #5a7a7e;
-    margin: 0 0 2px;
-    min-height: 0;
-  }
-  #demoCredit.on { display: block; }
-  #hero {
-    font-size: 58px;
-    font-weight: 800;
-    line-height: 1.05;
-    margin: 10px 0 6px;
-    min-height: 64px;
-    color: var(--fg);
-    letter-spacing: -0.02em;
-  }
-  #hero.empty {
-    min-height: 0;
-    margin: 0;
-    font-size: 0;
-  }
-  #app.teach #hero {
-    font-size: 24px;
-    font-weight: 700;
-    min-height: 30px;
-    margin: 4px 0 2px;
-    color: var(--fg);
-  }
-  #app.rest #hero {
-    color: var(--accent);
-    font-variant-numeric: tabular-nums;
-  }
-  #app.summary #heading { color: var(--good); }
-  #app.summary #hero { color: var(--good); font-size: 48px; }
-  #meta {
-    font-size: 18px;
-    color: var(--muted);
-    min-height: 24px;
-    margin-bottom: 8px;
-    line-height: 1.3;
-  }
-  #actions {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .btn {
-    min-height: 88px;
-    width: 100%;
-    border: 2px solid var(--line);
-    background: var(--card);
-    color: var(--fg);
-    font-size: 26px;
-    font-weight: 700;
-    border-radius: 16px;
-    text-align: left;
-    direction: ltr;
-    padding: 0 24px;
-    outline: none;
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-  .btn.primary {
-    border-color: var(--accent);
-    background: var(--card-hi);
-    color: var(--accent2);
-  }
-  .btn:focus {
-    border-color: var(--accent2);
-    box-shadow: inset 0 0 0 3px rgba(94, 234, 212, 0.55);
-    background: #10383e;
-  }
-  #flash {
     position: fixed;
-    inset: 0;
-    background: radial-gradient(circle at 50% 40%, #a5f3fc 0%, #22d3ee 45%, #000 100%);
-    opacity: 0;
-    pointer-events: none;
-    z-index: 9999;
-    transition: opacity 0.12s ease;
+    bottom: 12px;
+    left: 12px;
+    color: #64748b;
+    font-size: 13px;
   }
-  #flash.on { opacity: 0.92; }
-  #error {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: #000;
-    color: var(--danger);
-    padding: 24px;
-    font-size: 18px;
-    white-space: pre-wrap;
-    z-index: 10000;
-  }
-  .desktop-hint { display: none; }
-  @media (min-width: 700px) {
-    body {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0b1220;
-    }
-    #app { outline: 1px solid #1e293b; border-radius: 8px; }
-    .desktop-hint {
-      display: block;
-      position: fixed;
-      bottom: 12px;
-      left: 12px;
-      color: #64748b;
-      font-size: 13px;
-    }
-  }
+}
 </style>
 </head>
 <body>
@@ -243,7 +243,13 @@
     window.onerror(String(e.reason && e.reason.message || e.reason), "", 0, 0, e.reason);
   };
 
-  // --- Exercise library (cue ≤28, steps ≤28, name ≤18) ---
+  var SetPace = {};
+  SetPace.api = {};
+  /* module: constants */
+(function () {
+  "use strict";
+
+  // Exercise library (cue <= 28, steps <= 28, name <= 18). Mirrors index.html v2.5k.
   var EX = {
     legpress: {
       id: "legpress", name: "Leg press", unit: "kg",
@@ -704,26 +710,32 @@
     EquipSelect: 1, MachineList: 1, MachineDetail: 1
   };
 
-  function now() { return Date.now(); }
+  var api = {
+    EX: EX,
+    PLANS: PLANS,
+    STORE_KEY: STORE_KEY,
+    TAUGHT_KEY: TAUGHT_KEY,
+    IDEMPOTENCY_MS: IDEMPOTENCY_MS,
+    STALE_CUE_MS: STALE_CUE_MS,
+    LEVEL_MULT: LEVEL_MULT,
+    MACHINE_IDS: MACHINE_IDS,
+    MACHINE_DEFAULTS: MACHINE_DEFAULTS,
+    PRE_WORKOUT: PRE_WORKOUT
+  };
 
-  function loadTaughtEver() {
-    try {
-      var raw = localStorage.getItem(TAUGHT_KEY);
-      var arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    } catch (e) { return []; }
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.constants = api;
+})();
+
+/* module: plan */
+(function () {
+  "use strict";
+
+  function isMachinePlanId(id) {
+    return !!(id && id.indexOf("machine_") === 0);
   }
 
-  function persistTaught(id) {
-    if (!id) return;
-    var arr = loadTaughtEver();
-    if (arr.indexOf(id) === -1) {
-      arr.push(id);
-      try { localStorage.setItem(TAUGHT_KEY, JSON.stringify(arr)); } catch (e) {}
-    }
-  }
-
-  function scalePlanWeights(plan, level) {
+  function scalePlanWeights(plan, level, LEVEL_MULT) {
     var mult = LEVEL_MULT[level] || 1;
     if (mult === 1) return plan;
     for (var i = 0; i < plan.sets.length; i++) {
@@ -737,11 +749,7 @@
     return plan;
   }
 
-  function isMachinePlanId(id) {
-    return !!(id && id.indexOf("machine_") === 0);
-  }
-
-  function makeMachinePlan(exId, level) {
+  function makeMachinePlan(EX, MACHINE_DEFAULTS, LEVEL_MULT, exId, level) {
     var ex = EX[exId];
     if (!ex) return null;
     var def = MACHINE_DEFAULTS[exId] || { reps: 10, kg: 20 };
@@ -753,15 +761,28 @@
       exercises: exercises,
       sets: setsOf(exId, def.reps, def.kg, 2, { mid: 90, last: 0 })
     };
-    return scalePlanWeights(plan, level || "beginner");
+    return scalePlanWeights(plan, level || "beginner", LEVEL_MULT);
   }
 
-  function clonePlan(id, level) {
+  function setsOf(exId, reps, kg, n, rest) {
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      out.push({
+        exerciseId: exId,
+        targetReps: reps,
+        targetWeightKg: kg,
+        restSec: i === n - 1 ? rest.last : rest.mid
+      });
+    }
+    return out;
+  }
+
+  function clonePlan(PLANS, EX, MACHINE_DEFAULTS, LEVEL_MULT, id, level) {
     if (isMachinePlanId(id)) {
-      return makeMachinePlan(id.slice(8), level);
+      return makeMachinePlan(EX, MACHINE_DEFAULTS, LEVEL_MULT, id.slice(8), level);
     }
     var plan = JSON.parse(JSON.stringify(PLANS[id]));
-    return scalePlanWeights(plan, level || "beginner");
+    return scalePlanWeights(plan, level || "beginner", LEVEL_MULT);
   }
 
   function exerciseOf(plan, set) {
@@ -801,17 +822,120 @@
     return w ? w + " kg · " + reps : reps + " reps";
   }
 
-  function needsTeach(state, plan, cursor) {
+  var api = {
+    isMachinePlanId: isMachinePlanId,
+    scalePlanWeights: scalePlanWeights,
+    makeMachinePlan: makeMachinePlan,
+    clonePlan: clonePlan,
+    exerciseOf: exerciseOf,
+    setProgress: setProgress,
+    formatWeight: formatWeight,
+    formatClock: formatClock,
+    heroForSet: heroForSet
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.plan = api;
+})();
+
+/* module: validatePlan */
+(function () {
+  "use strict";
+
+  // Content contract (brief §5.D): name <= 18, cue <= 28, steps <= 28.
+  // Never truncate on-device as the primary strategy — fail the build instead.
+  var LIMITS = {
+    name: 18,
+    cue: 28,
+    step: 28
+  };
+
+  function validatePlan(plan, EX) {
+    var errors = [];
+    if (!plan || typeof plan !== "object") {
+      return ["plan is not an object"];
+    }
+    if (!plan.id || typeof plan.id !== "string") {
+      errors.push("plan.id missing");
+    }
+    if (!plan.name || plan.name.length > LIMITS.name) {
+      errors.push("plan '" + (plan.id || "?") + "' name over " + LIMITS.name + " chars: '" + plan.name + "'");
+    }
+    if (!plan.exercises || typeof plan.exercises !== "object") {
+      errors.push("plan '" + (plan.id || "?") + "' exercises missing");
+    }
+    if (!Array.isArray(plan.sets) || plan.sets.length === 0) {
+      errors.push("plan '" + (plan.id || "?") + "' sets empty");
+    }
+
+    // Every set must reference a known exercise with valid content.
+    var sets = plan.sets || [];
+    for (var i = 0; i < sets.length; i++) {
+      var set = sets[i];
+      if (!set || typeof set !== "object") {
+        errors.push("plan '" + (plan.id || "?") + "' set " + i + " invalid");
+        continue;
+      }
+      var ex = plan.exercises && plan.exercises[set.exerciseId];
+      if (!ex) {
+        errors.push("plan '" + (plan.id || "?") + "' set " + i + " references unknown exercise '" + set.exerciseId + "'");
+        continue;
+      }
+      if (!ex.name || ex.name.length > LIMITS.name) {
+        errors.push("exercise '" + set.exerciseId + "' name over " + LIMITS.name + " chars");
+      }
+      if (ex.cue && ex.cue.length > LIMITS.cue) {
+        errors.push("exercise '" + set.exerciseId + "' cue over " + LIMITS.cue + " chars");
+      }
+      if (Array.isArray(ex.steps)) {
+        for (var s = 0; s < ex.steps.length; s++) {
+          if (ex.steps[s].length > LIMITS.step) {
+            errors.push("exercise '" + set.exerciseId + "' step " + s + " over " + LIMITS.step + " chars");
+          }
+        }
+      }
+      if (typeof set.targetReps !== "number" || set.targetReps < 1) {
+        errors.push("plan '" + (plan.id || "?") + "' set " + i + " targetReps invalid");
+      }
+      if (set.targetWeightKg != null && (typeof set.targetWeightKg !== "number" || set.targetWeightKg < 0 || set.targetWeightKg > 250)) {
+        errors.push("plan '" + (plan.id || "?") + "' set " + i + " targetWeightKg out of range (0-250 kg)");
+      }
+      if (typeof set.restSec !== "number" || set.restSec < 0) {
+        errors.push("plan '" + (plan.id || "?") + "' set " + i + " restSec invalid");
+      }
+    }
+    return errors;
+  }
+
+  function validateAll(PLANS, EX) {
+    var all = [];
+    for (var id in PLANS) {
+      all = all.concat(validatePlan(PLANS[id], EX));
+    }
+    return all;
+  }
+
+  var api = {
+    LIMITS: LIMITS,
+    validatePlan: validatePlan,
+    validateAll: validateAll
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.validatePlan = api;
+})();
+
+/* module: reducer (pure; no DOM/Date.now/localStorage) */
+(function () {
+  "use strict";
+
+  function needsTeach(state, plan, cursor, hasEverTaught) {
     var set = plan.sets[cursor];
     if (!set) return false;
-    var ex = exerciseOf(plan, set);
+    var ex = plan.exercises[set.exerciseId];
     if (!ex || !ex.steps || !ex.steps.length) return false;
     if (state.taught.indexOf(ex.id) !== -1) return false;
-    // Intermediate: skip teach if already learned in a past session
-    if (state.level === "intermediate" && loadTaughtEver().indexOf(ex.id) !== -1) {
-      return false;
-    }
-    // Beginner: always offer teach once per exercise this session
+    if (state.level === "intermediate" && hasEverTaught(ex.id)) return false;
     return true;
   }
 
@@ -820,10 +944,9 @@
     if (!set) return;
     var id = set.exerciseId;
     if (state.taught.indexOf(id) === -1) state.taught.push(id);
-    persistTaught(id);
+    return id;
   }
 
-  // --- Reducer ---
   function idleState(t) {
     return {
       schemaVersion: 2,
@@ -850,7 +973,7 @@
   }
 
   function freshSession(planId, t, level) {
-    var state = {
+    return {
       schemaVersion: 2,
       planId: planId,
       pendingGoal: null,
@@ -872,16 +995,9 @@
       paused: false,
       pendingCue: null
     };
-    return state;
   }
 
-  function resolvePlanId(goal, equip) {
-    if (equip === "free") return goal + "_free";
-    return goal;
-  }
-
-  function resetToHome(t) {
-    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  function resetToHome(t, resetPlanTo) {
     if (typeof resetPlanTo === "function") resetPlanTo("fullbody", "beginner");
     return idleState(t);
   }
@@ -896,7 +1012,7 @@
     return JSON.parse(JSON.stringify(state));
   }
 
-  function withinIdempotency(state, t) {
+  function withinIdempotency(state, t, IDEMPOTENCY_MS) {
     return t - state.phaseEnteredAt < IDEMPOTENCY_MS;
   }
 
@@ -914,18 +1030,18 @@
     });
   }
 
-  function goToCursorReadyOrTeach(state, plan, t) {
+  function goToCursorReadyOrTeach(state, plan, t, hasEverTaught) {
     state.setStartedAt = null;
     state.adjust = null;
     state.restEndsAt = null;
-    if (needsTeach(state, plan, state.cursor)) {
+    if (needsTeach(state, plan, state.cursor, hasEverTaught)) {
       state.teachStep = 0;
       return enter(state, "Teach", t);
     }
     return enter(state, "SetReady", t);
   }
 
-  function advanceAfterSet(state, plan, t) {
+  function advanceAfterSet(state, plan, t, hasEverTaught) {
     var finished = plan.sets[state.cursor];
     state.cursor += 1;
     if (state.cursor >= plan.sets.length) {
@@ -935,7 +1051,7 @@
       return enter(state, "Summary", t);
     }
     if (!finished.restSec) {
-      return goToCursorReadyOrTeach(state, plan, t);
+      return goToCursorReadyOrTeach(state, plan, t, hasEverTaught);
     }
     state.restEndsAt = t + finished.restSec * 1000;
     state.setStartedAt = null;
@@ -945,7 +1061,7 @@
     return enter(state, "Resting", t);
   }
 
-  function endRest(state, t, skipped, plan) {
+  function endRest(state, t, skipped, plan, hasEverTaught) {
     var last = state.logged[state.logged.length - 1];
     if (last) {
       last.restEndedAt = t;
@@ -955,17 +1071,21 @@
     if (state.cursor >= plan.sets.length) {
       return enter(state, "Summary", t);
     }
-    return goToCursorReadyOrTeach(state, plan, t);
+    return goToCursorReadyOrTeach(state, plan, t, hasEverTaught);
   }
 
-  function finishTeach(state, plan, t) {
-    markTaught(state, plan, state.cursor);
-    state.teachStep = 0;
-    return enter(state, "SetReady", t);
-  }
-
-  function reducer(state, event, t, plan) {
+  function reducer(state, event, t, plan, deps) {
     state = clone(state);
+    deps = deps || {};
+    var IDEMPOTENCY_MS = deps.IDEMPOTENCY_MS;
+    var STALE_CUE_MS = deps.STALE_CUE_MS;
+    var resetPlanTo = deps.resetPlanTo;
+    var hasEverTaught = deps.hasEverTaught || function () { return false; };
+    var MACHINE_IDS = deps.MACHINE_IDS;
+    var PLANS = deps.PLANS;
+    var EX = deps.EX;
+    var makeMachinePlan = deps.makeMachinePlan;
+    var fresh = deps.freshSession || freshSession;
 
     if (event.t === "VISIBILITY") {
       state.paused = !event.visible;
@@ -973,7 +1093,7 @@
           (state.phase === "Resting" || state.menuReturn === "Resting")) {
         var overdue = t - state.restEndsAt;
         state.menuReturn = null;
-        state = endRest(state, t, false, plan);
+        state = endRest(state, t, false, plan, hasEverTaught);
         if (overdue <= STALE_CUE_MS) state.pendingCue = "rest_over";
       }
       return state;
@@ -983,7 +1103,7 @@
       if (state.restEndsAt != null && t >= state.restEndsAt &&
           (state.phase === "Resting" || state.menuReturn === "Resting")) {
         state.menuReturn = null;
-        state = endRest(state, t, false, plan);
+        state = endRest(state, t, false, plan, hasEverTaught);
         state.pendingCue = "rest_over";
       }
       return state;
@@ -1035,12 +1155,12 @@
 
     if (event.t === "SELECT_EQUIP") {
       if (state.phase !== "EquipSelect" || !state.pendingGoal || !state.level) return state;
-      var pid = resolvePlanId(state.pendingGoal, event.equip);
+      var pid = state.pendingGoal + (event.equip === "free" ? "_free" : "");
       if (!PLANS[pid]) return state;
       var lvl = state.level;
-      resetPlanTo(pid, lvl);
-      var session = freshSession(pid, t, lvl);
-      return goToCursorReadyOrTeach(session, clonePlan(pid, lvl), t);
+      if (resetPlanTo) resetPlanTo(pid, lvl);
+      var session = fresh(pid, t, lvl);
+      return goToCursorReadyOrTeach(session, deps.clonePlan(pid, lvl), t, hasEverTaught);
     }
 
     if (event.t === "SELECT_MACHINE") {
@@ -1062,7 +1182,7 @@
 
     if (event.t === "MACHINE_TIP") {
       if (state.phase !== "MachineDetail" || !state.machineId) return state;
-      if (withinIdempotency(state, t)) return state;
+      if (withinIdempotency(state, t, IDEMPOTENCY_MS)) return state;
       var mex = EX[state.machineId];
       var msteps = (mex && mex.steps) || [];
       if (!msteps.length) return state;
@@ -1074,20 +1194,20 @@
     if (event.t === "TRAIN_MACHINE") {
       if (state.phase !== "MachineDetail" || !state.machineId) return state;
       var mpid = "machine_" + state.machineId;
-      var mplan = makeMachinePlan(state.machineId, "beginner");
+      var mplan = makeMachinePlan(EX, deps.MACHINE_DEFAULTS, deps.LEVEL_MULT, state.machineId, "beginner");
       if (!mplan) return state;
-      resetPlanTo(mpid, "beginner");
-      var mSession = freshSession(mpid, t, "beginner");
-      return goToCursorReadyOrTeach(mSession, mplan, t);
+      if (resetPlanTo) resetPlanTo(mpid, "beginner");
+      var mSession = fresh(mpid, t, "beginner");
+      return goToCursorReadyOrTeach(mSession, mplan, t, hasEverTaught);
     }
 
     if (event.t === "TEACH_NEXT") {
       if (state.phase !== "Teach") return state;
-      if (withinIdempotency(state, t)) return state;
-      var exT = exerciseOf(plan, plan.sets[state.cursor]);
+      if (withinIdempotency(state, t, IDEMPOTENCY_MS)) return state;
+      var exT = plan.exercises[plan.sets[state.cursor].exerciseId];
       var steps = (exT && exT.steps) || [];
       if (state.teachStep >= steps.length - 1) {
-        return finishTeach(state, plan, t);
+        return finishTeach(state, plan, t, hasEverTaught, deps.persistTaught);
       }
       state.teachStep += 1;
       state.phaseEnteredAt = t;
@@ -1096,8 +1216,8 @@
 
     if (event.t === "TEACH_SKIP") {
       if (state.phase !== "Teach") return state;
-      if (withinIdempotency(state, t)) return state;
-      return finishTeach(state, plan, t);
+      if (withinIdempotency(state, t, IDEMPOTENCY_MS)) return state;
+      return finishTeach(state, plan, t, hasEverTaught, deps.persistTaught);
     }
 
     if (event.t === "HOW_TO") {
@@ -1121,7 +1241,6 @@
         return enter(state, "LevelSelect", t);
       }
       if (state.phase === "MachineList") {
-        // Back button only appears on the last page → always home
         state.mode = null;
         state.machineId = null;
         state.machinePage = 0;
@@ -1143,7 +1262,6 @@
         return enter(state, ret, t);
       }
       if (state.phase === "Teach") {
-        // leave teach without marking taught if mid-flow from SetReady how-to
         state.teachStep = 0;
         return enter(state, "SetReady", t);
       }
@@ -1164,12 +1282,12 @@
 
     if (event.t === "QUIT_CONFIRM") {
       if (state.phase !== "QuitConfirm") return state;
-      if (withinIdempotency(state, t)) return state;
-      return resetToHome(t);
+      if (withinIdempotency(state, t, IDEMPOTENCY_MS)) return state;
+      return resetToHome(t, resetPlanTo);
     }
 
     if (event.t === "PRIMARY") {
-      if (withinIdempotency(state, t)) return state;
+      if (withinIdempotency(state, t, IDEMPOTENCY_MS)) return state;
       if (state.phase === "SetReady") {
         state.setStartedAt = t;
         state.adjust = null;
@@ -1179,10 +1297,10 @@
         var reps = state.adjust ? state.adjust.reps : plan.sets[state.cursor].targetReps;
         var adjusted = !!(state.adjust && state.adjust.reps !== plan.sets[state.cursor].targetReps);
         logSet(state, plan, reps, t, adjusted);
-        return advanceAfterSet(state, plan, t);
+        return advanceAfterSet(state, plan, t, hasEverTaught);
       }
       if (state.phase === "Resting") {
-        return endRest(state, t, true, plan);
+        return endRest(state, t, true, plan, hasEverTaught);
       }
       return state;
     }
@@ -1208,7 +1326,7 @@
     if (event.t === "UNDO") {
       if (state.phase !== "Resting" && state.phase !== "Menu") return state;
       if (state.phase === "Menu" && state.menuReturn !== "Resting") return state;
-      if (withinIdempotency(state, t)) return state;
+      if (withinIdempotency(state, t, IDEMPOTENCY_MS)) return state;
       var popped = state.logged.pop();
       if (!popped) return state;
       state.cursor = popped.planIndex;
@@ -1221,7 +1339,7 @@
 
     if (event.t === "FINISH") {
       if (state.phase !== "Summary") return state;
-      return resetToHome(t);
+      return resetToHome(t, resetPlanTo);
     }
 
     if (event.t === "ADD_SET") {
@@ -1230,19 +1348,51 @@
       plan.sets.push(JSON.parse(JSON.stringify(lastSet)));
       state.cursor = plan.sets.length - 1;
       state.adjust = null;
-      return goToCursorReadyOrTeach(state, plan, t);
+      return goToCursorReadyOrTeach(state, plan, t, hasEverTaught);
     }
 
     return state;
   }
 
-  // --- Render ---
+  function finishTeach(state, plan, t, hasEverTaught, persistTaught) {
+    var id = markTaught(state, plan, state.cursor);
+    if (id && typeof persistTaught === "function") persistTaught(id);
+    state.teachStep = 0;
+    return enter(state, "SetReady", t);
+  }
+
+  var api = {
+    idleState: idleState,
+    freshSession: freshSession,
+    needsTeach: needsTeach,
+    markTaught: markTaught,
+    reducer: reducer
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.reducer = api;
+})();
+
+/* module: render (pure → Frame; no DOM/Date.now/localStorage) */
+(function () {
+  "use strict";
+
+  var NAV_ACTIONS = { plan_full: 1, plan_upper: 1, plan_legs: 1, more: 1, back: 1, tip: 1, skip: 1, plus: 1, add: 1, quit: 1, howto: 1, menu: 1 };
+
   function workoutProgress(state, plan) {
     if (!state || !plan || !plan.sets.length) return 0;
     return Math.min(1, state.logged.length / plan.sets.length);
   }
 
-  function render(state, t, plan) {
+  function render(state, t, plan, deps) {
+    deps = deps || {};
+    var exerciseOf = deps.exerciseOf;
+    var setProgress = deps.setProgress;
+    var formatClock = deps.formatClock;
+    var heroForSet = deps.heroForSet;
+    var MACHINE_IDS = deps.MACHINE_IDS;
+    var EX = deps.EX;
+
     if (!state || state.phase === "Home" || state.phase === "Idle") {
       return {
         eyebrow: "SetPace",
@@ -1316,7 +1466,6 @@
     }
 
     if (state.phase === "MachineList") {
-      // Pages of 2 machines + More or Back (88px budget)
       var page = state.machinePage || 0;
       var start = page * 2;
       var pair = MACHINE_IDS.slice(start, start + 2);
@@ -1545,18 +1694,241 @@
     };
   }
 
-  // --- Demos: Gym visual GIFs when available, canvas fallback ---
-  var demoCanvas = document.getElementById("demo");
-  var demoGif = document.getElementById("demoGif");
-  var demoCredit = document.getElementById("demoCredit");
-  var demoCtx = demoCanvas.getContext("2d");
+  function defaultFocusId(state, frame) {
+    if (!frame || !frame.actions || !frame.actions.length) return null;
+    var first = frame.actions[0].id;
+    if (state.phase === "Adjusting") return "minus";
+    if (NAV_ACTIONS[first]) return first;
+    return first;
+  }
+
+  var api = {
+    workoutProgress: workoutProgress,
+    render: render,
+    defaultFocusId: defaultFocusId
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.render = api;
+})();
+
+/* module: clock */
+(function () {
+  "use strict";
+
+  function now() {
+    return Date.now();
+  }
+
+  function scheduleTick(dispatch, t) {
+    var delay = Math.max(50, 1000 - (t % 1000));
+    return setTimeout(function () {
+      dispatch({ t: "TICK" });
+    }, delay);
+  }
+
+  var api = { now: now, scheduleTick: scheduleTick };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.clock = api;
+})();
+
+/* module: audio */
+(function () {
+  "use strict";
+
+  var ctx = null;
+
+  function ensureAudio() {
+    if (!ctx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) ctx = new AC();
+    }
+    if (ctx && ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }
+
+  function playTone() {
+    try {
+      var c = ensureAudio();
+      if (!c) return;
+      var t0 = c.currentTime;
+      function chime(freq, at, dur, vol) {
+        var o = c.createOscillator();
+        var g = c.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(c.destination);
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(vol, at + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+        o.start(at);
+        o.stop(at + dur + 0.02);
+      }
+      chime(523.25, t0, 0.28, 0.16);
+      chime(659.25, t0 + 0.14, 0.32, 0.14);
+      chime(783.99, t0 + 0.28, 0.45, 0.12);
+    } catch (e) {}
+  }
+
+  function flashPulse() {
+    try {
+      var el = document.getElementById("flash");
+      if (!el) return;
+      var n = 0;
+      function beat() {
+        el.classList.add("on");
+        setTimeout(function () {
+          el.classList.remove("on");
+          n++;
+          if (n < 2) setTimeout(beat, 160);
+        }, 220);
+      }
+      beat();
+    } catch (e) {}
+  }
+
+  function fireCue() {
+    playTone();
+    flashPulse();
+  }
+
+  var api = { ensureAudio: ensureAudio, playTone: playTone, flashPulse: flashPulse, fireCue: fireCue };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.audio = api;
+})();
+
+/* module: storage (localStorage adapter; schema v2) */
+(function () {
+  "use strict";
+
+  function save(STORE_KEY, PRE_WORKOUT, state, plan) {
+    if (!state || PRE_WORKOUT[state.phase]) {
+      try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+      return;
+    }
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        state: state,
+        planId: state.planId,
+        level: state.level || "beginner",
+        planSetsLen: plan.sets.length
+      }));
+    } catch (e) {}
+  }
+
+  function load(STORE_KEY, deps) {
+    var now = deps.now;
+    var PLANS = deps.PLANS;
+    var EX = deps.EX;
+    var LEVEL_MULT = deps.LEVEL_MULT;
+    var isMachinePlanId = deps.isMachinePlanId;
+    var clonePlan = deps.clonePlan;
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var wrapped = JSON.parse(raw);
+      var s = wrapped.state || wrapped;
+      if (!s || (s.schemaVersion !== 2 && s.schemaVersion !== 1)) return null;
+      if (s.startedAt && now() - s.startedAt > 6 * 60 * 60 * 1000) {
+        localStorage.removeItem(STORE_KEY);
+        return null;
+      }
+      var pid = wrapped.planId || s.planId;
+      var lvl = wrapped.level || s.level || "beginner";
+      if (!pid || (!PLANS[pid] && !isMachinePlanId(pid))) return null;
+      if (isMachinePlanId(pid) && !EX[pid.slice(8)]) return null;
+      s.level = lvl;
+      var plan = clonePlan(pid, lvl);
+      var baseLen = plan.sets.length;
+      if (PLANS[pid]) baseLen = PLANS[pid].sets.length;
+      var extra = (wrapped.planSetsLen || plan.sets.length) - baseLen;
+      if (extra > 0) {
+        var template = PLANS[pid]
+          ? PLANS[pid].sets[PLANS[pid].sets.length - 1]
+          : plan.sets[plan.sets.length - 1];
+        for (var i = 0; i < extra; i++) {
+          plan.sets.push(JSON.parse(JSON.stringify(template)));
+          if (plan.sets[plan.sets.length - 1].targetWeightKg != null && lvl === "intermediate") {
+            var sw = Math.round(plan.sets[plan.sets.length - 1].targetWeightKg * LEVEL_MULT.intermediate);
+            if (sw > 250) sw = 250;
+            plan.sets[plan.sets.length - 1].targetWeightKg = sw;
+          }
+        }
+      }
+      if (!s.taught) s.taught = [];
+      if (s.teachStep == null) s.teachStep = 0;
+      if (s.machinePage == null) s.machinePage = 0;
+      s.schemaVersion = 2;
+      return { state: s, plan: plan };
+    } catch (e) { return null; }
+  }
+
+  var api = { save: save, load: load };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.storage = api;
+})();
+
+/* module: taught (localStorage adapter) */
+(function () {
+  "use strict";
+
+  function loadTaughtEver(TAUGHT_KEY) {
+    try {
+      var raw = localStorage.getItem(TAUGHT_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function persistTaught(TAUGHT_KEY, id) {
+    try {
+      var arr = loadTaughtEver(TAUGHT_KEY);
+      if (arr.indexOf(id) === -1) arr.push(id);
+      localStorage.setItem(TAUGHT_KEY, JSON.stringify(arr));
+    } catch (e) {}
+  }
+
+  var api = {
+    loadTaughtEver: loadTaughtEver,
+    persistTaught: persistTaught
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.taught = api;
+})();
+
+/* module: demo (canvas + GIF demo adapter) */
+(function () {
+  "use strict";
+
+  var demoCanvas = null;
+  var demoGif = null;
+  var demoCredit = null;
+  var demoCtx = null;
   var demoRaf = null;
   var demoKind = null;
   var demoStart = 0;
   var demoMode = null; // "gif" | "canvas"
 
+  // Lazy init: module load must not touch the DOM (build.mjs validates content
+  // in Node). Elements resolve on first startDemo/stopDemo, in-browser only.
+  function init() {
+    if (demoCanvas) return;
+    demoCanvas = document.getElementById("demo");
+    demoGif = document.getElementById("demoGif");
+    demoCredit = document.getElementById("demoCredit");
+    demoCtx = demoCanvas.getContext("2d");
+  }
+
   function gifForKind(kind) {
     if (!kind) return null;
+    var EX = SetPace.api.constants.EX;
     if (EX[kind] && EX[kind].gif) return EX[kind].gif;
     for (var id in EX) {
       if (EX[id].demo === kind && EX[id].gif) return EX[id].gif;
@@ -1565,6 +1937,7 @@
   }
 
   function stopDemo() {
+    init();
     if (demoRaf) {
       cancelAnimationFrame(demoRaf);
       demoRaf = null;
@@ -1639,7 +2012,6 @@
     line(ctx, 20, 130, 250, 190); // rail
     line(ctx, 20, 150, 100, 200);
     strokeCyan(ctx, 4);
-    // reclined body
     head(ctx, 55, 85, 11);
     line(ctx, 55, 96, 90, 130); // torso on pad
     line(ctx, 90, 130, sled, 155); // thighs to platform
@@ -1706,7 +2078,6 @@
     line(ctx, 95, 106, 95, 145);
     line(ctx, 95, 145, 75, 175);
     line(ctx, 95, 145, 120, 175);
-    // arms press upward
     var handY = 85 - up;
     line(ctx, 95, 115, 70, handY);
     line(ctx, 95, 115, 120, handY);
@@ -1755,7 +2126,6 @@
     line(ctx, 190, 112, 200, 155);
     ctx.globalAlpha = 1;
     strokeHi(ctx, 2);
-    // "hold" ticks
     line(ctx, 120, 90, 120, 100);
     line(ctx, 140, 88, 140, 100);
     line(ctx, 160, 90, 160, 100);
@@ -1782,7 +2152,7 @@
     arrow(ctx, 165, 95, 200, 70);
   }
 
-  // Standing, elbows pinned, push cable DOWN to hips (not a pulldown!)
+  // Standing, elbows pinned, push cable DOWN to hips
   function drawTriPush(ctx, p) {
     var a = wave(p);
     var down = a * 50;
@@ -1794,7 +2164,6 @@
     line(ctx, 140, 66, 140, 130);
     line(ctx, 140, 130, 120, 180);
     line(ctx, 140, 130, 160, 180);
-    // upper arms fixed at sides, forearms push down
     var handY = 95 + down;
     line(ctx, 140, 85, 125, 100);
     line(ctx, 140, 85, 155, 100);
@@ -1807,7 +2176,7 @@
     arrow(ctx, 185, 110, 185, 155);
   }
 
-  // Lying face-down (or seated side view): heels curl toward glutes
+  // Lying face-down: heels curl toward glutes
   function drawLegCurl(ctx, p) {
     var a = wave(p);
     var curl = a * 1.1;
@@ -1816,17 +2185,14 @@
     line(ctx, 50, 100, 50, 180);
     line(ctx, 210, 100, 210, 180);
     strokeCyan(ctx, 4);
-    // torso prone
     head(ctx, 55, 85, 10);
     line(ctx, 65, 90, 140, 90);
-    // hip fixed, lower legs curl up
     var kneeX = 155, kneeY = 100;
     line(ctx, 140, 90, kneeX, kneeY);
     var fx = kneeX + Math.cos(0.15 + curl) * 55;
     var fy = kneeY - Math.sin(0.15 + curl) * 55;
     line(ctx, kneeX, kneeY, fx, fy);
     strokeHi(ctx, 4);
-    // ankle pad
     line(ctx, fx - 8, fy - 6, fx + 8, fy + 6);
     arrow(ctx, 210, 140, 195, 100);
   }
@@ -1842,7 +2208,6 @@
     head(ctx, 85, 70, 11);
     line(ctx, 85, 81, 85, 130);
     line(ctx, 85, 130, 70, 160);
-    // thigh on seat, shin swings out
     var kneeX = 130, kneeY = 155;
     line(ctx, 85, 130, kneeX, kneeY);
     var sx = kneeX + Math.cos(-0.2 + ext * 1.3) * 55;
@@ -1863,11 +2228,9 @@
     strokeCyan(ctx, 4);
     head(ctx, 140, 40, 11);
     line(ctx, 140, 51, 140, 110);
-    // legs shorten visually as heels rise
     line(ctx, 140, 110, 115, 160 - lift);
     line(ctx, 140, 110, 165, 160 - lift);
     strokeHi(ctx, 4);
-    // balls of feet on edge, heels up
     line(ctx, 108, 165 - lift, 122, 165 - lift);
     line(ctx, 158, 165 - lift, 172, 165 - lift);
     line(ctx, 115, 165 - lift, 115, 175 - lift * 0.2);
@@ -1899,7 +2262,6 @@
     var hipY = 100 + a * 35;
     var headY = 45 + a * 25;
     strokeHi(ctx, 4);
-    // dumbbell at chest
     line(ctx, 128, headY + 28, 152, headY + 28);
     line(ctx, 140, headY + 22, 140, headY + 34);
   }
@@ -1916,7 +2278,6 @@
     line(ctx, 110, 130, 180, 130); // torso on bench
     line(ctx, 150, 130, 140, 150);
     line(ctx, 170, 130, 185, 150);
-    // arms to bar
     line(ctx, 130, 130, 115, barY);
     line(ctx, 170, 130, 185, barY);
     strokeHi(ctx, 4);
@@ -1966,7 +2327,6 @@
 
   function drawRdl(ctx, p) {
     var a = wave(p);
-    // a=0 stand, a=1 hinged
     var hipY = 110 + a * 15;
     var headY = 45 + a * 35;
     var barY = 160 + a * 25;
@@ -1991,10 +2351,8 @@
     strokeCyan(ctx, 4);
     head(ctx, 130, 50 + drop * 0.4, 11);
     line(ctx, 130, 62 + drop * 0.4, 130, 110 + drop * 0.3);
-    // front leg
     line(ctx, 130, 110 + drop * 0.3, 95, 155 + drop * 0.2);
     line(ctx, 95, 155 + drop * 0.2, 85, 195);
-    // back knee drops
     line(ctx, 130, 110 + drop * 0.3, 170, 160 + drop);
     line(ctx, 170, 160 + drop, 185, 195);
     strokeHi(ctx, 3);
@@ -2080,6 +2438,7 @@
   }
 
   function startDemo(kind, gifOverride) {
+    init();
     if (!kind) {
       stopDemo();
       return;
@@ -2109,76 +2468,49 @@
     demoRaf = requestAnimationFrame(loop);
   }
 
-  // --- Audio + flash ---
-  var audioCtx = null;
-  function ensureAudio() {
-    if (!audioCtx) {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (AC) audioCtx = new AC();
-    }
-    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-    return audioCtx;
-  }
+  var api = { startDemo: startDemo, stopDemo: stopDemo };
 
-  function playTone() {
-    try {
-      var ctx = ensureAudio();
-      if (!ctx) return;
-      var t0 = ctx.currentTime;
-      function chime(freq, at, dur, vol) {
-        var o = ctx.createOscillator();
-        var g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.value = freq;
-        g.gain.value = 0.0001;
-        o.connect(g);
-        g.connect(ctx.destination);
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(vol, at + 0.04);
-        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-        o.start(at);
-        o.stop(at + dur + 0.02);
-      }
-      chime(523.25, t0, 0.28, 0.16);
-      chime(659.25, t0 + 0.14, 0.32, 0.14);
-      chime(783.99, t0 + 0.28, 0.45, 0.12);
-    } catch (e) {}
-  }
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.demo = api;
+})();
 
-  function flashPulse() {
-    var el = document.getElementById("flash");
-    var n = 0;
-    function beat() {
-      el.classList.add("on");
-      setTimeout(function () {
-        el.classList.remove("on");
-        n++;
-        if (n < 2) setTimeout(beat, 160);
-      }, 220);
-    }
-    beat();
-  }
+/* module: commit (keyed DOM diff + focus restore; matches original index.html contract) */
+(function () {
+  "use strict";
 
-  function fireCue() {
-    playTone();
-    flashPulse();
-  }
-
-  // --- DOM commit ---
-  var appEl = document.getElementById("app");
-  var eyebrowEl = document.getElementById("eyebrow");
-  var headingEl = document.getElementById("heading");
-  var heroEl = document.getElementById("hero");
-  var metaEl = document.getElementById("meta");
-  var demoWrap = document.getElementById("demoWrap");
-  var progressEl = document.getElementById("progress");
-  var progressFill = document.getElementById("progressFill");
-  var actionsEl = document.getElementById("actions");
-  var lastFocusId = "primary";
-  var actionHandlers = {};
+  var appEl = null;
+  var eyebrowEl = null;
+  var headingEl = null;
+  var heroEl = null;
+  var metaEl = null;
+  var demoWrap = null;
+  var progressEl = null;
+  var progressFill = null;
+  var actionsEl = null;
   var moodClasses = ["teach", "rest", "summary", "active", "ready", "home"];
 
-  function commit(frame) {
+  var demo = SetPace.api.demo;
+
+  // Lazy init: module load must not touch the DOM (build.mjs validates content
+  // in Node). Elements resolve on first commit, which only happens in-browser.
+  function init() {
+    if (appEl) return;
+    appEl = document.getElementById("app");
+    eyebrowEl = document.getElementById("eyebrow");
+    headingEl = document.getElementById("heading");
+    heroEl = document.getElementById("hero");
+    metaEl = document.getElementById("meta");
+    demoWrap = document.getElementById("demoWrap");
+    progressEl = document.getElementById("progress");
+    progressFill = document.getElementById("progressFill");
+    actionsEl = document.getElementById("actions");
+  }
+
+  function commit(frame, ports) {
+    init();
+    var dispatch = ports.dispatch;
+    var lastFocusId = ports.getLastFocusId();
+
     eyebrowEl.textContent = frame.eyebrow || "";
     headingEl.textContent = frame.heading || "";
     heroEl.textContent = frame.hero || "";
@@ -2200,10 +2532,10 @@
 
     if (frame.demo) {
       demoWrap.classList.add("on");
-      startDemo(frame.demo, frame.gif || null);
+      demo.startDemo(frame.demo, frame.gif || null);
     } else {
       demoWrap.classList.remove("on");
-      stopDemo();
+      demo.stopDemo();
     }
 
     var existing = {};
@@ -2216,7 +2548,6 @@
     for (var a = 0; a < frame.actions.length; a++) {
       var action = frame.actions[a];
       keep[action.id] = true;
-      actionHandlers[action.id] = action.event;
       var btn = existing[action.id];
       if (!btn) {
         btn = document.createElement("button");
@@ -2225,11 +2556,13 @@
         btn.dataset.id = action.id;
         btn.addEventListener("click", function (ev) {
           var id = ev.currentTarget.dataset.id;
-          dispatch(actionHandlers[id]);
+          var handler = ev.currentTarget._spHandler;
+          if (handler) dispatch(handler);
         });
       }
       btn.textContent = action.label;
       btn.className = "btn" + (a === 0 ? " primary" : "");
+      btn._spHandler = action.event;
       if (btn.parentNode !== actionsEl || actionsEl.children[a] !== btn) {
         actionsEl.insertBefore(btn, actionsEl.children[a] || null);
       }
@@ -2243,96 +2576,133 @@
       actionsEl.querySelector(".btn");
     if (focusTarget) {
       focusTarget.focus();
-      lastFocusId = focusTarget.dataset.id;
+      ports.setLastFocusId(focusTarget.dataset.id);
     }
   }
 
-  // --- App loop ---
+  var api = { commit: commit };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else SetPace.api.commit = api;
+})();
+  /* app: wires ports + boot/resume (schema v2) */
+(function () {
+  "use strict";
+
+  var clock = SetPace.api.clock;
+  var commit = SetPace.api.commit;
+  var storage = SetPace.api.storage;
+  var taught = SetPace.api.taught;
+  var reducerApi = SetPace.api.reducer;
+  var renderApi = SetPace.api.render;
+  var constants = SetPace.api.constants;
+  var planApi = SetPace.api.plan;
+  var audio = SetPace.api.audio;
+
+  var now = clock.now;
+  var scheduleTick = clock.scheduleTick;
+
+  var STORE_KEY = constants.STORE_KEY;
+  var TAUGHT_KEY = constants.TAUGHT_KEY;
+  var IDEMPOTENCY_MS = constants.IDEMPOTENCY_MS;
+  var STALE_CUE_MS = constants.STALE_CUE_MS;
+  var LEVEL_MULT = constants.LEVEL_MULT;
+  var PRE_WORKOUT = constants.PRE_WORKOUT;
+  var MACHINE_IDS = constants.MACHINE_IDS;
+  var MACHINE_DEFAULTS = constants.MACHINE_DEFAULTS;
+  var PLANS = constants.PLANS;
+  var EX = constants.EX;
+
+  var isMachinePlanId = planApi.isMachinePlanId;
+  var clonePlan = planApi.clonePlan;
+  var exerciseOf = planApi.exerciseOf;
+  var setProgress = planApi.setProgress;
+  var formatClock = planApi.formatClock;
+  var heroForSet = planApi.heroForSet;
+  var idleState = reducerApi.idleState;
+  var freshSession = reducerApi.freshSession;
+  var reducer = reducerApi.reducer;
+  var render = renderApi.render;
+
+  function clonePlanFor(planId, level) {
+    return clonePlan(PLANS, EX, MACHINE_DEFAULTS, LEVEL_MULT, planId, level || "beginner");
+  }
+
   var state = null;
+  var plan = clonePlanFor("fullbody", "beginner");
   var tickTimer = null;
-  var plan = clonePlan("fullbody", "beginner");
+  var lastFocusId = "primary";
 
   function resetPlanTo(planId, level) {
     if (!planId) return;
-    if (PLANS[planId] || isMachinePlanId(planId)) {
-      plan = clonePlan(planId, level || "beginner");
-    }
+    plan = clonePlanFor(planId, level || "beginner");
   }
 
   function save() {
-    if (!state || PRE_WORKOUT[state.phase]) {
-      try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-      return;
-    }
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({
-        state: state,
-        planId: state.planId,
-        level: state.level || "beginner",
-        planSetsLen: plan.sets.length
-      }));
-    } catch (e) {}
+    storage.save(STORE_KEY, PRE_WORKOUT, state, plan);
   }
 
   function load() {
-    try {
-      var raw = localStorage.getItem(STORE_KEY);
-      if (!raw) return null;
-      var wrapped = JSON.parse(raw);
-      var s = wrapped.state || wrapped;
-      if (!s || (s.schemaVersion !== 2 && s.schemaVersion !== 1)) return null;
-      if (s.startedAt && now() - s.startedAt > 6 * 60 * 60 * 1000) {
-        localStorage.removeItem(STORE_KEY);
-        return null;
-      }
-      var pid = wrapped.planId || s.planId;
-      var lvl = wrapped.level || s.level || "beginner";
-      if (!pid || (!PLANS[pid] && !isMachinePlanId(pid))) return null;
-      if (isMachinePlanId(pid) && !EX[pid.slice(8)]) return null;
-      s.level = lvl;
-      resetPlanTo(pid, lvl);
-      var baseLen = plan.sets.length;
-      // For catalog plans, base length is unscaled template length
-      if (PLANS[pid]) baseLen = PLANS[pid].sets.length;
-      var extra = (wrapped.planSetsLen || plan.sets.length) - baseLen;
-      if (extra > 0) {
-        var template = PLANS[pid]
-          ? PLANS[pid].sets[PLANS[pid].sets.length - 1]
-          : plan.sets[plan.sets.length - 1];
-        for (var i = 0; i < extra; i++) {
-          plan.sets.push(JSON.parse(JSON.stringify(template)));
-          if (plan.sets[plan.sets.length - 1].targetWeightKg != null && lvl === "intermediate") {
-            var sw = Math.round(plan.sets[plan.sets.length - 1].targetWeightKg * LEVEL_MULT.intermediate);
-            if (sw > 250) sw = 250;
-            plan.sets[plan.sets.length - 1].targetWeightKg = sw;
-          }
-        }
-      }
-      if (!s.taught) s.taught = [];
-      if (s.teachStep == null) s.teachStep = 0;
-      if (s.machinePage == null) s.machinePage = 0;
-      s.schemaVersion = 2;
-      return s;
-    } catch (e) { return null; }
+    var loaded = storage.load(STORE_KEY, {
+      now: now,
+      PLANS: PLANS,
+      EX: EX,
+      LEVEL_MULT: LEVEL_MULT,
+      isMachinePlanId: isMachinePlanId,
+      clonePlan: clonePlanFor
+    });
+    if (!loaded) return null;
+    if (loaded.state) {
+      plan = loaded.plan;
+      return loaded.state;
+    }
+    return loaded;
+  }
+
+  function hasEverTaught(id) {
+    return taught.loadTaughtEver(TAUGHT_KEY).indexOf(id) !== -1;
+  }
+
+  function persistTaught(id) {
+    taught.persistTaught(TAUGHT_KEY, id);
   }
 
   function paint() {
-    var frame = render(state, now(), plan);
-    commit(frame);
+    var frame = render(state, now(), plan, {
+      exerciseOf: exerciseOf,
+      setProgress: setProgress,
+      formatClock: formatClock,
+      heroForSet: heroForSet,
+      MACHINE_IDS: MACHINE_IDS,
+      EX: EX
+    });
+    commit(frame, {
+      dispatch: dispatch,
+      lastFocusId: lastFocusId,
+      setLastFocusId: function (id) {
+        lastFocusId = id;
+      },
+      getLastFocusId: function () {
+        return lastFocusId;
+      }
+    });
   }
 
-  function scheduleTick() {
+  function scheduleRestTick() {
     if (tickTimer) {
       clearTimeout(tickTimer);
       tickTimer = null;
     }
     if (!state || state.restEndsAt == null) return;
     if (state.phase !== "Resting" && state.menuReturn !== "Resting") return;
-    var t = now();
-    var delay = Math.max(50, 1000 - (t % 1000));
-    tickTimer = setTimeout(function () {
-      dispatch({ t: "TICK" });
-    }, delay);
+    tickTimer = scheduleTick(dispatch, now());
+  }
+
+  function firePendingCue() {
+    if (state && state.pendingCue === "rest_over") {
+      state.pendingCue = null;
+      audio.fireCue();
+    }
   }
 
   function dispatch(event) {
@@ -2340,52 +2710,67 @@
     var prevPhase = state && state.phase;
     var t = now();
 
-    if (!state) {
-      state = idleState(t);
-    }
+    if (!state) state = idleState(t);
+
+    var deps = {
+      IDEMPOTENCY_MS: IDEMPOTENCY_MS,
+      STALE_CUE_MS: STALE_CUE_MS,
+      hasEverTaught: hasEverTaught,
+      persistTaught: persistTaught,
+      MACHINE_IDS: MACHINE_IDS,
+      PLANS: PLANS,
+      EX: EX,
+      MACHINE_DEFAULTS: MACHINE_DEFAULTS,
+      LEVEL_MULT: LEVEL_MULT,
+      resetPlanTo: resetPlanTo,
+      clonePlan: clonePlanFor,
+      makeMachinePlan: planApi.makeMachinePlan
+    };
 
     if (event.t === "SELECT_EQUIP" || event.t === "TRAIN_MACHINE") {
-      state = reducer(state, event, t, plan);
+      state = reducer(state, event, t, plan, deps);
       if (state.planId) resetPlanTo(state.planId, state.level || "beginner");
       lastFocusId = "primary";
-      if (state.pendingCue === "rest_over") {
-        state.pendingCue = null;
-        fireCue();
-      }
+      firePendingCue();
       save();
       paint();
-      scheduleTick();
+      scheduleRestTick();
       return;
     }
 
     if (event.t === "SELECT_HOME") {
-      state = reducer(state, event, t, plan);
-      lastFocusId = state.phase === "MachineList" ? "mach_" + MACHINE_IDS[0] : "plan_full";
+      state = reducer(state, event, t, plan, deps);
+      lastFocusId = state.phase === "MachineList"
+        ? "mach_" + MACHINE_IDS[0]
+        : "plan_full";
+      firePendingCue();
       save();
       paint();
-      scheduleTick();
+      scheduleRestTick();
       return;
     }
 
     if (event.t === "SELECT_PLAN") {
-      state = reducer(state, event, t, plan);
+      state = reducer(state, event, t, plan, deps);
       lastFocusId = "level_beg";
+      firePendingCue();
       save();
       paint();
-      scheduleTick();
+      scheduleRestTick();
       return;
     }
 
     if (event.t === "SELECT_LEVEL") {
-      state = reducer(state, event, t, plan);
+      state = reducer(state, event, t, plan, deps);
       lastFocusId = "equip_m";
+      firePendingCue();
       save();
       paint();
-      scheduleTick();
+      scheduleRestTick();
       return;
     }
 
-    state = reducer(state, event, t, plan);
+    state = reducer(state, event, t, plan, deps);
 
     if (state.planId && (!plan || plan.id !== state.planId)) {
       if (PLANS[state.planId] || isMachinePlanId(state.planId)) {
@@ -2393,10 +2778,7 @@
       }
     }
 
-    if (state.pendingCue === "rest_over") {
-      state.pendingCue = null;
-      fireCue();
-    }
+    firePendingCue();
 
     if (state.phase !== prevPhase) {
       lastFocusId = "primary";
@@ -2426,66 +2808,79 @@
     }
 
     paint();
-    scheduleTick();
+    scheduleRestTick();
   }
 
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-      e.preventDefault();
-      var buttons = Array.prototype.slice.call(actionsEl.querySelectorAll(".btn"));
-      var idx = buttons.indexOf(document.activeElement);
-      var next = buttons[Math.min(buttons.length - 1, Math.max(0, idx) + 1)] || buttons[0];
-      if (next) {
-        next.focus();
-        lastFocusId = next.dataset.id;
+  function boot() {
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        var buttons = Array.prototype.slice.call(
+          document.querySelectorAll(".btn")
+        );
+        var idx = buttons.indexOf(document.activeElement);
+        var next = buttons[Math.min(buttons.length - 1, Math.max(0, idx) + 1)] || buttons[0];
+        if (next) {
+          next.focus();
+          lastFocusId = next.dataset.id;
+        }
+        return;
       }
-      return;
-    }
-    if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-      e.preventDefault();
-      var buttons2 = Array.prototype.slice.call(actionsEl.querySelectorAll(".btn"));
-      var idx2 = buttons2.indexOf(document.activeElement);
-      var prev = buttons2[Math.max(0, (idx2 < 0 ? 0 : idx2) - 1)] || buttons2[0];
-      if (prev) {
-        prev.focus();
-        lastFocusId = prev.dataset.id;
+      if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        var buttons2 = Array.prototype.slice.call(
+          document.querySelectorAll(".btn")
+        );
+        var idx2 = buttons2.indexOf(document.activeElement);
+        var prev = buttons2[Math.max(0, (idx2 < 0 ? 0 : idx2) - 1)] || buttons2[0];
+        if (prev) {
+          prev.focus();
+          lastFocusId = prev.dataset.id;
+        }
+        return;
       }
-      return;
-    }
-    if (e.key === "Enter") {
-      e.preventDefault();
-      ensureAudio();
-      var focused = document.activeElement;
-      if (focused && focused.classList.contains("btn")) {
-        lastFocusId = focused.dataset.id;
-        dispatch(actionHandlers[focused.dataset.id]);
+      if (e.key === "Enter") {
+        e.preventDefault();
+        audio.ensureAudio();
+        var focused = document.activeElement;
+        if (focused && focused.classList.contains("btn")) {
+          lastFocusId = focused.dataset.id;
+          var handler = focused._spHandler || null;
+          if (handler) dispatch(handler);
+        } else {
+          var first = document.querySelector(".btn");
+          if (first) {
+            var firstHandler = first._spHandler || null;
+            if (firstHandler) dispatch(firstHandler);
+          }
+        }
+      }
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      dispatch({ t: "VISIBILITY", visible: !document.hidden });
+    });
+
+    var saved = load();
+    if (saved && saved.phase && !PRE_WORKOUT[saved.phase]) {
+      state = saved;
+      state.paused = document.hidden;
+      if (state.phase === "Resting" && state.restEndsAt != null && now() >= state.restEndsAt) {
+        dispatch({ t: "VISIBILITY", visible: true });
       } else {
-        var first = actionsEl.querySelector(".btn");
-        if (first) dispatch(actionHandlers[first.dataset.id]);
+        paint();
+        scheduleRestTick();
       }
-    }
-  });
-
-  document.addEventListener("visibilitychange", function () {
-    dispatch({ t: "VISIBILITY", visible: !document.hidden });
-  });
-
-  // Boot
-  var saved = load();
-  if (saved && saved.phase && !PRE_WORKOUT[saved.phase]) {
-    state = saved;
-    state.paused = document.hidden;
-    if (state.phase === "Resting" && state.restEndsAt != null && now() >= state.restEndsAt) {
-      dispatch({ t: "VISIBILITY", visible: true });
     } else {
+      state = idleState(now());
+      lastFocusId = "mode_train";
       paint();
-      scheduleTick();
     }
-  } else {
-    state = idleState(now());
-    lastFocusId = "mode_train";
-    paint();
   }
+
+  SetPace.boot = boot;
+})();
+  if (SetPace.boot) SetPace.boot();
 })();
 </script>
 </body>

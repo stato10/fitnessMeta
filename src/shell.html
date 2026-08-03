@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="mrbd-web-app-capable" content="yes">
+<meta name="viewport" content="width=600, height=600, initial-scale=1.0, user-scalable=no">
+<title>SetPace</title>
+<style>
+/*__SETPACE_CSS__*/
+</style>
+</head>
+<body>
+<div id="flash" aria-hidden="true"></div>
+<pre id="error"></pre>
+<div class="desktop-hint">Desktop: arrows + Enter · Glasses: Neural Band</div>
+<div id="app">
+  <div id="eyebrow"></div>
+  <div id="heading"></div>
+  <div id="progress"><i id="progressFill"></i></div>
+  <div id="demoWrap">
+    <canvas id="demo" width="280" height="210"></canvas>
+    <img id="demoGif" alt="" width="280" height="210" decoding="async">
+  </div>
+  <div id="demoCredit"></div>
+  <div id="hero"></div>
+  <div id="meta"></div>
+  <div id="actions"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  window.onerror = function (msg, src, line, col, err) {
+    var el = document.getElementById("error");
+    el.style.display = "block";
+    el.textContent = String(msg) + "\n" + (src || "") + ":" + line + ":" + col +
+      (err && err.stack ? "\n" + err.stack : "");
+  };
+  window.onunhandledrejection = function (e) {
+    window.onerror(String(e.reason && e.reason.message || e.reason), "", 0, 0, e.reason);
+  };
+
+  var SetPace = {};
+  SetPace.api = {};
+  /*__SETPACE_MODULES__*/
+  /*__SETPACE_APP__*/
+  if (SetPace.boot) SetPace.boot();
+})();
+</script>
+</body>
+</html>

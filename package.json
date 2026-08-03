@@ -1,0 +1,13 @@
+{
+  "name": "setpace",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Meta Ray-Ban Display workout runner — teach, set, rest without a phone",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/edge-cases.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
