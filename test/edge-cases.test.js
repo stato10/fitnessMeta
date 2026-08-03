@@ -175,6 +175,33 @@ test("rest render keeps stable primary action id across 10 ticks", () => {
   }
 });
 
+test("rest frame sets urgent when remaining ≤10s", () => {
+  now = 0;
+  const deps = makeDeps();
+  let s = readyState("fullbody", 0, "beginner");
+  s = reducerApi.reducer(s, { t: "PRIMARY" }, 300, PLAN, deps);
+  s = reducerApi.reducer(s, { t: "PRIMARY" }, 600, PLAN, deps); // restEndsAt 60600
+  const calm = renderApi.render(s, 600, PLAN, {
+    exerciseOf: planApi.exerciseOf,
+    setProgress: planApi.setProgress,
+    formatClock: planApi.formatClock,
+    heroForSet: planApi.heroForSet,
+    MACHINE_IDS: [],
+    EX
+  });
+  assert.equal(calm.urgent, false);
+  const hot = renderApi.render(s, 600 + 51 * 1000, PLAN, {
+    exerciseOf: planApi.exerciseOf,
+    setProgress: planApi.setProgress,
+    formatClock: planApi.formatClock,
+    heroForSet: planApi.heroForSet,
+    MACHINE_IDS: [],
+    EX
+  });
+  assert.equal(hot.urgent, true);
+  assert.equal(hot.mood, "rest");
+});
+
 // --- 3. Clock jump forward/back while Resting --------------------------------
 test("clock jump forward ends rest; jump back keeps resting", () => {
   now = 0;

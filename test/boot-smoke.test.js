@@ -199,8 +199,8 @@ test("api.commit.commit is a function (wiring contract)", () => {
 test("boot paints Home without throwing", () => {
   const { SetPace, byId } = loadApp();
   assert.doesNotThrow(() => SetPace.boot());
-  assert.equal(byId.heading.textContent, "Let's train");
-  assert.equal(byId.eyebrow.textContent, "SetPace");
+    assert.equal(byId.heading.textContent, "Let's train");
+  assert.equal(byId.eyebrow.textContent, "SETPACE");
   const buttons = byId.actions.querySelectorAll(".btn");
   assert.ok(buttons.length >= 2, "Home has Train + Exercises");
   assert.equal(buttons[0].dataset.id, "mode_train");

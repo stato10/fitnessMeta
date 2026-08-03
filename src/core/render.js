@@ -20,10 +20,10 @@
 
     if (!state || state.phase === "Home" || state.phase === "Idle") {
       return {
-        eyebrow: "SetPace",
+        eyebrow: "SETPACE",
         heading: "Let's train",
         hero: "",
-        meta: "Learn exercises · follow a plan · Middle pinch closes app",
+        meta: "Train without the phone",
         demo: null,
         progress: null,
         mood: "home",
@@ -248,8 +248,8 @@
       }
       var mins = Math.max(1, Math.round((t - state.startedAt) / 60000));
       return {
-        eyebrow: "Nice work",
-        heading: "Workout done",
+        eyebrow: "Done",
+        heading: "Session complete",
         hero: state.logged.length + " sets",
         meta: mins + " min · " + Math.round(volume) + " kg",
         demo: null,
@@ -267,17 +267,19 @@
       var next = plan.sets[state.cursor];
       var nex = exerciseOf(plan, next);
       var nprog = setProgress(plan, state.cursor);
-      var restMeta = remain <= 10
+      var urgent = remain <= 10;
+      var restMeta = urgent
         ? "Get ready · " + nex.name
         : "Next: " + nex.name + " · " + nprog.current + "/" + nprog.total;
       return {
-        eyebrow: remain <= 10 ? "Almost there" : "Rest · breathe",
+        eyebrow: urgent ? "Almost there" : "Rest · breathe",
         heading: nex.name,
         hero: formatClock(remain),
         meta: restMeta,
         demo: null,
         progress: pct,
         mood: "rest",
+        urgent: urgent,
         actions: [
           { id: "primary", label: "Skip rest", event: { t: "PRIMARY" } },
           { id: "menu", label: "Menu", event: { t: "OPEN_MENU" } }

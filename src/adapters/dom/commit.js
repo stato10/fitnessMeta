@@ -11,7 +11,7 @@
   var progressEl = null;
   var progressFill = null;
   var actionsEl = null;
-  var moodClasses = ["teach", "rest", "summary", "active", "ready", "home"];
+  var moodClasses = ["teach", "rest", "summary", "active", "ready", "home", "urgent"];
 
   var demo = SetPace.api.demo;
 
@@ -46,6 +46,7 @@
       appEl.classList.remove(moodClasses[m]);
     }
     if (frame.mood) appEl.classList.add(frame.mood);
+    if (frame.urgent) appEl.classList.add("urgent");
 
     if (frame.progress == null) {
       progressEl.classList.remove("on");
