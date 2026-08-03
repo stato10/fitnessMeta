@@ -16,8 +16,8 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Run edge-case tests (pure reducer, fake clock)
-        run: node --test test/edge-cases.test.js
+      - name: Run tests (reducer edge cases + boot smoke)
+        run: npm test
 
       - name: Build (validate content + size gate)
         run: node build.mjs

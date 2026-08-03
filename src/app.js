@@ -3,7 +3,7 @@
   "use strict";
 
   var clock = SetPace.api.clock;
-  var commit = SetPace.api.commit;
+  var commitApi = SetPace.api.commit;
   var storage = SetPace.api.storage;
   var taught = SetPace.api.taught;
   var reducerApi = SetPace.api.reducer;
@@ -14,6 +14,7 @@
 
   var now = clock.now;
   var scheduleTick = clock.scheduleTick;
+  var commit = commitApi.commit;
 
   var STORE_KEY = constants.STORE_KEY;
   var TAUGHT_KEY = constants.TAUGHT_KEY;
@@ -224,13 +225,17 @@
     scheduleRestTick();
   }
 
+  function actionButtons() {
+    var root = document.getElementById("actions");
+    if (!root) return [];
+    return Array.prototype.slice.call(root.querySelectorAll(".btn"));
+  }
+
   function boot() {
     document.addEventListener("keydown", function (e) {
       if (e.key === "ArrowDown" || e.key === "ArrowRight") {
         e.preventDefault();
-        var buttons = Array.prototype.slice.call(
-          document.querySelectorAll(".btn")
-        );
+        var buttons = actionButtons();
         var idx = buttons.indexOf(document.activeElement);
         var next = buttons[Math.min(buttons.length - 1, Math.max(0, idx) + 1)] || buttons[0];
         if (next) {
@@ -241,9 +246,7 @@
       }
       if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
         e.preventDefault();
-        var buttons2 = Array.prototype.slice.call(
-          document.querySelectorAll(".btn")
-        );
+        var buttons2 = actionButtons();
         var idx2 = buttons2.indexOf(document.activeElement);
         var prev = buttons2[Math.max(0, (idx2 < 0 ? 0 : idx2) - 1)] || buttons2[0];
         if (prev) {
@@ -256,12 +259,12 @@
         e.preventDefault();
         audio.ensureAudio();
         var focused = document.activeElement;
-        if (focused && focused.classList.contains("btn")) {
+        if (focused && focused.classList.contains("btn") && focused.closest("#actions")) {
           lastFocusId = focused.dataset.id;
           var handler = focused._spHandler || null;
           if (handler) dispatch(handler);
         } else {
-          var first = document.querySelector(".btn");
+          var first = actionButtons()[0];
           if (first) {
             var firstHandler = first._spHandler || null;
             if (firstHandler) dispatch(firstHandler);

@@ -139,8 +139,9 @@ test("double PRIMARY 100ms apart after set complete does not skip rest", () => {
   assert.equal(s.restEndsAt, before.restEndsAt);
 });
 
-// --- 2. Focus on secondary action survives 10 rest ticks ---------------------
-test("focus target (primary) survives 10 rest ticks", () => {
+// --- 2. Rest frames keep a stable primary action id across ticks -------------
+// (DomAdapter focus survival is covered by test/boot-smoke.test.js)
+test("rest render keeps stable primary action id across 10 ticks", () => {
   now = 0;
   const deps = makeDeps();
   let s = readyState("fullbody", 0, "beginner");
@@ -158,7 +159,6 @@ test("focus target (primary) survives 10 rest ticks", () => {
   });
   assert.equal(frame0.actions[0].id, "primary", "primary is the default focus");
 
-  // 10 ticks at 1s each — focus target must stay stable (keyed commit keeps it).
   for (let i = 1; i <= 10; i++) {
     now = 600 + i * 1000;
     s = reducerApi.reducer(s, { t: "TICK" }, now, PLAN, deps);

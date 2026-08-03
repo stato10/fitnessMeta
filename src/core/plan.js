@@ -90,7 +90,8 @@
     if (ex && ex.unit === "time") return formatClock(reps);
     if (ex && ex.unit === "bodyweight") return reps + " reps";
     var w = formatWeight(set.targetWeightKg);
-    return w ? w + " kg · " + reps : reps + " reps";
+    // formatWeight already includes the unit ("40 kg")
+    return w ? w + " · " + reps : reps + " reps";
   }
 
   var api = {
